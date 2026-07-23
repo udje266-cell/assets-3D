@@ -1,0 +1,20 @@
+{
+  "name": "gmdi",
+  "version": "0.1.0",
+  "description": "GMDI — Gestion Municipale Digitale Intégrée. Prototype de plateforme municipale unique (Portail Citoyen, Back Office Maire, Back Office Gestionnaires).",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node src/seed.js --force"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "express": "^4.19.2"
+  }
+}

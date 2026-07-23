@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vérification d'acte — GMDI</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="topbar"><div class="brand"><div class="logo">G</div><div>GMDI<small>Vérification d'authenticité</small></div></div></div>
+  <div class="container" id="out"><div class="empty">Vérification…</div></div>
+  <script>
+    (async () => {
+      const token = location.pathname.split('/').filter(Boolean).pop();
+      const out = document.getElementById('out');
+      const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      try {
+        const res = await fetch('/api/verify/' + token);
+        const r = await res.json();
+        if (!res.ok || !r.valid) throw new Error(r.error || 'Acte non reconnu.');
+        const d = new Date(r.date);
+        out.innerHTML = `<h1 class="page-title">Vérification d'acte</h1>
+          <div class="card pad" style="max-width:520px">
+            <div class="alert success">✔ Acte authentique — délivré par ${esc(r.delivrePar)}</div>
+            <dl class="kv">
+              <dt>N° d'acte</dt><dd>${esc(r.acte)}</dd>
+              <dt>Module</dt><dd>${esc(r.module)}</dd>
+              <dt>Démarche</dt><dd>${esc(r.demarche)}</dd>
+              <dt>Bénéficiaire</dt><dd>${esc(r.beneficiaire)}</dd>
+              <dt>Date de délivrance</dt><dd>${d.toLocaleString('fr-FR')}</dd>
+            </dl>
+          </div>
+          <p style="margin-top:16px"><a href="/">← Accueil GMDI</a></p>`;
+      } catch (e) {
+        out.innerHTML = `<h1 class="page-title">Vérification d'acte</h1>
+          <div class="card pad" style="max-width:520px"><div class="alert error">✘ ${esc(e.message)}</div></div>
+          <p style="margin-top:16px"><a href="/">← Accueil GMDI</a></p>`;
+      }
+    })();
+  </script>
+</body>
+</html>
