@@ -113,9 +113,23 @@ src/
 public/
   index.html     Coquille de l'application
   app.js         SPA (routeur par hash) : les trois espaces
-  styles.css     Charte GMDI (navy #1F3864)
+  styles.css     Charte GMDI aux couleurs de la Côte d'Ivoire (orange/blanc/vert)
   verify.html    Vérification publique d'un acte via QR Code
 ```
+
+## Identité visuelle (couleurs de la Côte d'Ivoire)
+
+L'interface reprend les couleurs du drapeau ivoirien — **orange, blanc, vert** —
+et chaque « partie » porte sa propre teinte :
+
+- **Portail Citoyen / Site public** → orange
+- **Back Office Maire** → vert
+- **Back Office Gestionnaire** → vert (nuance distincte)
+- **Auditeur** → vert-ardoise
+
+Un liseré tricolore surmonte chaque page, les titres sont soulignés d'un rappel
+orange/blanc/vert, et les validations restent en vert. La couleur de chaque
+espace est pilotée par l'attribut `data-space` sur `<body>` (voir `styles.css`).
 
 ## Portée du prototype
 

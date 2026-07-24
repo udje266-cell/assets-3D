@@ -32,6 +32,12 @@ async function api(path, { method = 'GET', body } = {}) {
 // État global léger.
 const state = { user: null, modules: [], statusLabels: {} };
 
+// Teinte de l'espace courant (couleurs du drapeau ivoirien via CSS).
+function setSpace(s) { document.body.dataset.space = s; }
+function spaceForRole(r) {
+  return { mayor: 'mayor', manager: 'manager', auditor: 'auditor', citizen: 'citizen', agent: 'citizen' }[r] || 'public';
+}
+
 function badge(status) {
   return `<span class="badge ${status}">${esc(state.statusLabels[status] || status)}</span>`;
 }
@@ -134,6 +140,7 @@ route('/', async () => {
   await ensureMeta();
   await ensureSession();
   if (state.user) { location.hash = homeForUser(state.user); return; }
+  setSpace('public');
   app().innerHTML = topbar() + `
     <div class="landing">
       <div class="logo-big" style="width:64px;height:64px;border-radius:14px;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:800;font-size:26px;margin:0 auto 18px">G</div>
@@ -178,6 +185,7 @@ route('/login', async () => {
 
 function renderAuth(context) {
   const isCitizen = context === 'citizen';
+  setSpace(isCitizen ? 'citizen' : 'mayor'); // portail = orange · back office = vert
   app().innerHTML = `
     <div class="auth-wrap">
       <div class="auth-hero">
@@ -286,6 +294,7 @@ route('/change-password', async () => {
   const u = await ensureSession();
   if (!u) { location.hash = '#/'; return; }
   await ensureMeta();
+  setSpace(spaceForRole(u.role));
   app().innerHTML = topbar() + `
     <div class="container" style="max-width:460px">
       <h1 class="page-title">Modifier le mot de passe</h1>
@@ -321,6 +330,7 @@ route('/citizen', async () => {
   await ensureMeta();
   if (!u) { location.hash = '#/portail'; return; }
   if (u.role !== 'citizen') { location.hash = homeForUser(u); return; }
+  setSpace('citizen');
 
   const { demarches } = await api('/citizen/demarches');
   const pending = demarches.filter((d) => ['submitted', 'paid', 'in_review'].includes(d.status)).length;
@@ -465,6 +475,7 @@ route('/manager', async () => {
   await ensureMeta();
   if (!u) { location.hash = '#/login'; return; }
   if (u.role !== 'manager') { location.hash = homeForUser(u); return; }
+  setSpace('manager');
 
   const mod = state.modules.find((m) => m.code === u.module);
   const [{ demarches }, { stats }] = await Promise.all([api('/manager/demarches'), api('/manager/stats')]);
@@ -581,6 +592,7 @@ route('/mayor', async (sub) => {
   await ensureMeta();
   if (!u) { location.hash = '#/login'; return; }
   if (u.role !== 'mayor') { location.hash = homeForUser(u); return; }
+  setSpace('mayor');
 
   if (sub[0] === 'module' && sub[1]) return renderMayorModule(sub[1]);
 
@@ -653,6 +665,7 @@ route('/audit', async () => {
   await ensureMeta();
   if (!u) { location.hash = '#/login'; return; }
   if (!['auditor', 'mayor'].includes(u.role)) { location.hash = homeForUser(u); return; }
+  setSpace(u.role === 'mayor' ? 'mayor' : 'auditor');
 
   const { entries } = await api('/audit');
   app().innerHTML = topbar() + `
@@ -680,6 +693,7 @@ route('/audit', async () => {
 route('/verify', async (sub) => {
   const token = sub[0];
   await ensureMeta();
+  setSpace('public');
   let html;
   try {
     const r = await api('/verify/' + token);
