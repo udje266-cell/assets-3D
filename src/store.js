@@ -10,7 +10,8 @@ const EMPTY = {
   users: [],
   demarches: [],
   audit: [],
-  counters: { user: 0, demarche: 0, audit: 0, tracking: 0 },
+  notifications: [],
+  counters: { user: 0, demarche: 0, audit: 0, tracking: 0, notification: 0 },
 };
 
 let db = null;

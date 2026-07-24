@@ -24,6 +24,7 @@ export const ROLES = {
   MANAGER: 'manager',
   AGENT: 'agent', // agent municipal (RH) — accès à son dossier personnel
   AUDITOR: 'auditor',
+  ADMIN: 'admin', // Administration Système (cahier des charges technique §2.5)
 };
 
 // Les sept modules métiers de la plateforme (le module 07 n'existe pas dans le CDC).
@@ -126,21 +127,23 @@ export function findDemarche(moduleCode, demarcheKey) {
   return mod.demarches.find((d) => d.key === demarcheKey) || null;
 }
 
-// Statuts communs du flux unifié (cahier des charges §6).
+// Statuts officiels du flux unifié (cahier des charges technique §6).
 export const STATUS = {
-  SUBMITTED: 'submitted', // déposée
-  PAID: 'paid', // payée (si démarche payante)
-  IN_REVIEW: 'in_review', // en cours de vérification par le gestionnaire
-  VALIDATED: 'validated', // validée / acte généré
-  REJECTED: 'rejected', // refusée avec motif
+  PENDING: 'pending', // En attente (déposée / en attente de paiement ou de prise en charge)
+  IN_PROGRESS: 'in_progress', // En cours (le gestionnaire traite le dossier)
+  TO_COMPLETE: 'to_complete', // À compléter (le gestionnaire demande des pièces/infos)
+  VALIDATED: 'validated', // Validé (décision favorable, document généré)
+  REJECTED: 'rejected', // Refusé (motif obligatoire)
+  COMPLETED: 'completed', // Terminé (dossier clôturé / acte délivré)
 };
 
 export const STATUS_LABELS = {
-  submitted: 'Déposée',
-  paid: 'Payée — en attente de traitement',
-  in_review: 'En cours de vérification',
-  validated: 'Validée',
-  rejected: 'Refusée',
+  pending: 'En attente',
+  in_progress: 'En cours',
+  to_complete: 'À compléter',
+  validated: 'Validé',
+  rejected: 'Refusé',
+  completed: 'Terminé',
 };
 
 export const PRIORITIES = ['normale', 'prioritaire', 'urgente'];
@@ -156,4 +159,26 @@ export const SEED_ACCOUNTS = [
   { email: 'communication@mairie-gmdi.ci', password: 'Communication@2026', role: ROLES.MANAGER, name: 'Gestionnaire — Communication', module: '06' },
   { email: 'patrimoine@mairie-gmdi.ci', password: 'Patrimoine@2026', role: ROLES.MANAGER, name: 'Gestionnaire — Patrimoine', module: '08' },
   { email: 'auditeur@mairie-gmdi.ci', password: 'Auditeur@2026', role: ROLES.AUDITOR, name: 'Auditeur', module: null },
+  { email: 'admin@mairie-gmdi.ci', password: 'Admin@2026', role: ROLES.ADMIN, name: 'Administrateur Système', module: null },
 ];
+
+// Contenu du Site public (vitrine officielle — cahier des charges technique §2.1).
+export const PUBLIC_SITE = {
+  mairie: {
+    nom: 'Mairie de la commune',
+    slogan: 'Une administration numérique, proche et transparente',
+    presentation:
+      "La mairie met à disposition des citoyens la plateforme GMDI, un guichet numérique unique regroupant l'ensemble des services municipaux. Effectuez vos démarches en ligne, suivez vos dossiers et recevez vos documents officiels sans vous déplacer.",
+  },
+  actualites: [
+    { date: '2026-07-20', titre: 'Ouverture du guichet numérique GMDI', resume: "Tous les services de la mairie sont désormais accessibles en ligne via un compte citoyen unique." },
+    { date: '2026-07-15', titre: 'Paiement des taxes par Mobile Money', resume: 'Réglez vos taxes et redevances via Orange Money, MTN, Wave ou carte bancaire, 24h/24.' },
+    { date: '2026-07-05', titre: 'Consultation publique : aménagement du marché central', resume: 'Donnez votre avis sur le projet via le module Communication jusqu\'au 31 août.' },
+  ],
+  contacts: {
+    adresse: 'Hôtel de ville, Place de l\'Indépendance',
+    telephone: '+225 27 20 00 00 00',
+    email: 'contact@mairie-gmdi.ci',
+    horaires: 'Lun. – Ven. : 08h00 – 16h30',
+  },
+};

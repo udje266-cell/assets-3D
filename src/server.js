@@ -7,16 +7,25 @@ import cookieParser from 'cookie-parser';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { PORT, SESSION_COOKIE, ROLES, MODULES, MODULE_BY_CODE, STATUS_LABELS } from './config.js';
-import { load } from './store.js';
+import { PORT, SESSION_COOKIE, ROLES, MODULES, MODULE_BY_CODE, STATUS_LABELS, PUBLIC_SITE } from './config.js';
+import { load, get } from './store.js';
 import {
   attemptLogin, createSession, destroySession, userFromSession,
   publicUser, findUserByEmail, findUserById, createUser, changePassword,
-  resetPasswordByAdmin, labelForUser,
+  resetPasswordByAdmin, setActive, setRole, labelForUser,
 } from './auth.js';
 import * as audit from './audit.js';
+import * as notif from './notifications.js';
 import * as D from './demarches.js';
 import { seed } from './seed.js';
+
+// Résout le(s) gestionnaire(s) d'un module — destinataires des notifications métier.
+function managersOfModule(moduleCode) {
+  return get().users.filter((u) => u.role === ROLES.MANAGER && u.module === moduleCode && u.active !== false);
+}
+function notifyManagers(moduleCode, payload) {
+  for (const m of managersOfModule(moduleCode)) notif.notify({ userId: m.id, module: moduleCode, ...payload });
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -146,7 +155,8 @@ function serializeDemarche(d, { includeInternal = false } = {}) {
     moduleName: MODULE_BY_CODE[d.moduleCode]?.name, moduleIcon: MODULE_BY_CODE[d.moduleCode]?.icon,
     demarcheKey: d.demarcheKey, demarcheLabel: d.demarcheLabel,
     status: d.status, statusLabel: STATUS_LABELS[d.status], priority: d.priority,
-    fee: d.fee, payment: d.payment, acte: d.acte, rejectReason: d.rejectReason,
+    fee: d.fee, payment: d.payment, needsPayment: D.needsPayment(d),
+    acte: d.acte, rejectReason: d.rejectReason, completionRequest: d.completionRequest || null,
     createdAt: d.createdAt, updatedAt: d.updatedAt, history: d.history,
     formData: d.formData,
   };
@@ -155,6 +165,11 @@ function serializeDemarche(d, { includeInternal = false } = {}) {
     base.citizenName = d.citizenName;
   }
   return base;
+}
+
+// Notifie le citoyen d'une évolution de son dossier.
+function notifyCitizen(d, { type, title, message }) {
+  notif.notify({ userId: d.citizenId, type, title, message, demarcheId: d.id, module: d.moduleCode });
 }
 
 app.get('/api/citizen/demarches', requireRole(ROLES.CITIZEN), (req, res) => {
@@ -166,8 +181,15 @@ app.post('/api/citizen/demarches', requireRole(ROLES.CITIZEN), (req, res) => {
   const { moduleCode, demarcheKey, formData } = req.body || {};
   const result = D.createDemarche({ citizen: req.user, moduleCode, demarcheKey, formData });
   if (result.error) return res.status(400).json({ error: result.error });
-  audit.record({ user: req.user, ip: clientIp(req), module: moduleCode, action: `Dépôt démarche ${result.demarche.tracking}` });
-  res.json({ demarche: serializeDemarche(result.demarche) });
+  const d = result.demarche;
+  audit.record({ user: req.user, ip: clientIp(req), module: moduleCode, action: `Dépôt démarche ${d.tracking}` });
+  // Notification citoyen (accusé de dépôt). Le gestionnaire est notifié une fois
+  // le paiement effectué (ou immédiatement si la démarche est gratuite).
+  notifyCitizen(d, { type: 'info', title: 'Démarche enregistrée', message: `Votre démarche « ${d.demarcheLabel} » a été déposée (${d.tracking}).` });
+  if (!D.needsPayment(d)) {
+    notifyManagers(moduleCode, { type: 'info', title: 'Nouvelle demande', message: `${d.tracking} — ${d.demarcheLabel} (${d.citizenName})`, demarcheId: d.id });
+  }
+  res.json({ demarche: serializeDemarche(d) });
 });
 
 app.get('/api/citizen/demarches/:id', requireRole(ROLES.CITIZEN), (req, res) => {
@@ -183,6 +205,19 @@ app.post('/api/citizen/demarches/:id/pay', requireRole(ROLES.CITIZEN), (req, res
   const result = D.payDemarche(d, method);
   if (result.error) return res.status(400).json({ error: result.error });
   audit.record({ user: req.user, ip: clientIp(req), module: d.moduleCode, action: `Paiement démarche ${d.tracking} (${method})` });
+  notifyCitizen(d, { type: 'success', title: 'Paiement confirmé', message: `Reçu ${d.payment.receipt} — ${d.demarcheLabel}. Votre dossier est transmis au service.` });
+  notifyManagers(d.moduleCode, { type: 'info', title: 'Nouvelle demande (payée)', message: `${d.tracking} — ${d.demarcheLabel} (${d.citizenName})`, demarcheId: d.id });
+  res.json({ demarche: serializeDemarche(d) });
+});
+
+// Le citoyen fournit le complément demandé par le gestionnaire (statut À compléter).
+app.post('/api/citizen/demarches/:id/complete', requireRole(ROLES.CITIZEN), (req, res) => {
+  const d = D.findById(req.params.id);
+  if (!d || d.citizenId !== req.user.id) return res.status(404).json({ error: 'Démarche introuvable.' });
+  const result = D.citizenComplete(d, (req.body || {}).info);
+  if (result.error) return res.status(400).json({ error: result.error });
+  audit.record({ user: req.user, ip: clientIp(req), module: d.moduleCode, action: `Complément fourni ${d.tracking}` });
+  notifyManagers(d.moduleCode, { type: 'info', title: 'Complément reçu', message: `${d.tracking} — le citoyen a complété son dossier.`, demarcheId: d.id });
   res.json({ demarche: serializeDemarche(d) });
 });
 
@@ -221,12 +256,35 @@ app.post('/api/manager/demarches/:id/priority', requireRole(ROLES.MANAGER), (req
   res.json({ demarche: serializeDemarche(d, { includeInternal: true }) });
 });
 
+// Le gestionnaire demande un complément au citoyen (→ À compléter).
+app.post('/api/manager/demarches/:id/request-completion', requireRole(ROLES.MANAGER), (req, res) => {
+  const d = D.findById(req.params.id);
+  if (!guardModule(req, d)) return res.status(404).json({ error: 'Démarche introuvable dans votre module.' });
+  const result = D.requestCompletion(d, (req.body || {}).message, labelForUser(req.user));
+  if (result.error) return res.status(400).json({ error: result.error });
+  audit.record({ user: req.user, ip: clientIp(req), module: d.moduleCode, action: `Complément demandé ${d.tracking}` });
+  notifyCitizen(d, { type: 'warning', title: 'Dossier à compléter', message: `${d.demarcheLabel} : ${d.completionRequest}` });
+  res.json({ demarche: serializeDemarche(d, { includeInternal: true }) });
+});
+
 app.post('/api/manager/demarches/:id/validate', requireRole(ROLES.MANAGER), (req, res) => {
   const d = D.findById(req.params.id);
   if (!guardModule(req, d)) return res.status(404).json({ error: 'Démarche introuvable dans votre module.' });
   const result = D.validateDemarche(d, labelForUser(req.user));
   if (result.error) return res.status(400).json({ error: result.error });
   audit.record({ user: req.user, ip: clientIp(req), module: d.moduleCode, action: `Validation ${d.tracking} — acte ${d.acte.number}` });
+  notifyCitizen(d, { type: 'success', title: 'Démarche validée', message: `${d.demarcheLabel} : votre document (${d.acte.number}) est disponible.` });
+  res.json({ demarche: serializeDemarche(d, { includeInternal: true }) });
+});
+
+// Clôture du dossier après délivrance (→ Terminé).
+app.post('/api/manager/demarches/:id/close', requireRole(ROLES.MANAGER), (req, res) => {
+  const d = D.findById(req.params.id);
+  if (!guardModule(req, d)) return res.status(404).json({ error: 'Démarche introuvable dans votre module.' });
+  const result = D.closeDemarche(d, labelForUser(req.user));
+  if (result.error) return res.status(400).json({ error: result.error });
+  audit.record({ user: req.user, ip: clientIp(req), module: d.moduleCode, action: `Clôture ${d.tracking}` });
+  notifyCitizen(d, { type: 'success', title: 'Dossier terminé', message: `${d.demarcheLabel} : dossier clôturé.` });
   res.json({ demarche: serializeDemarche(d, { includeInternal: true }) });
 });
 
@@ -236,6 +294,7 @@ app.post('/api/manager/demarches/:id/reject', requireRole(ROLES.MANAGER), (req, 
   const result = D.rejectDemarche(d, (req.body || {}).reason, labelForUser(req.user));
   if (result.error) return res.status(400).json({ error: result.error });
   audit.record({ user: req.user, ip: clientIp(req), module: d.moduleCode, action: `Refus ${d.tracking}` });
+  notifyCitizen(d, { type: 'error', title: 'Démarche refusée', message: `${d.demarcheLabel} : ${d.rejectReason}` });
   res.json({ demarche: serializeDemarche(d, { includeInternal: true }) });
 });
 
@@ -253,10 +312,10 @@ app.get('/api/mayor/dashboard', requireRole(ROLES.MAYOR), (req, res) => {
   const totals = perModule.reduce(
     (acc, m) => {
       acc.total += m.total; acc.pending += m.pending; acc.validated += m.validated;
-      acc.rejected += m.rejected; acc.revenue += m.revenue;
+      acc.completed += m.completed; acc.rejected += m.rejected; acc.revenue += m.revenue;
       return acc;
     },
-    { total: 0, pending: 0, validated: 0, rejected: 0, revenue: 0 }
+    { total: 0, pending: 0, validated: 0, completed: 0, rejected: 0, revenue: 0 }
   );
   res.json({ perModule, totals, citizens: countCitizens() });
 });
@@ -276,9 +335,99 @@ function countCitizens() {
 // ============================================================================
 // ESPACE AUDITEUR — lecture seule des journaux, tous modules (CDC §4.3)
 // ============================================================================
-app.get('/api/audit', requireRole(ROLES.AUDITOR, ROLES.MAYOR), (req, res) => {
+app.get('/api/audit', requireRole(ROLES.AUDITOR, ROLES.MAYOR, ROLES.ADMIN), (req, res) => {
   const module = req.query.module || null;
   res.json({ entries: audit.list({ module }) });
+});
+
+// ============================================================================
+// NOTIFICATIONS (CDC technique §7) — chaque utilisateur voit les siennes
+// ============================================================================
+app.get('/api/notifications', requireAuth, (req, res) => {
+  res.json({ notifications: notif.listForUser(req.user.id), unread: notif.unreadCount(req.user.id) });
+});
+app.post('/api/notifications/read', requireAuth, (req, res) => {
+  const { id } = req.body || {};
+  if (id) notif.markRead(req.user.id, id);
+  else notif.markAllRead(req.user.id);
+  res.json({ unread: notif.unreadCount(req.user.id) });
+});
+
+// ============================================================================
+// SITE PUBLIC (CDC technique §2.1) — vitrine, aucun compte nécessaire
+// ============================================================================
+app.get('/api/public/site', (req, res) => {
+  res.json({
+    ...PUBLIC_SITE,
+    services: MODULES.filter((m) => m.citizen).map((m) => ({
+      code: m.code, name: m.name, short: m.short, icon: m.icon,
+      demarches: m.demarches.map((d) => d.label),
+    })),
+  });
+});
+
+// ============================================================================
+// ADMINISTRATION SYSTÈME (CDC technique §2.5) — jamais de traitement métier
+// ============================================================================
+const ADMIN_ASSIGNABLE_ROLES = [ROLES.MANAGER, ROLES.MAYOR, ROLES.AUDITOR, ROLES.ADMIN, ROLES.AGENT];
+
+function adminUserView(u) {
+  return { ...publicUser(u), label: labelForUser(u) };
+}
+
+app.get('/api/admin/users', requireRole(ROLES.ADMIN), (req, res) => {
+  const users = get().users.slice().sort((a, b) => a.id - b.id).map(adminUserView);
+  res.json({ users, modules: MODULES.map((m) => ({ code: m.code, name: m.name })) });
+});
+
+// Création d'un compte professionnel.
+app.post('/api/admin/users', requireRole(ROLES.ADMIN), (req, res) => {
+  const { email, name, role, module, password } = req.body || {};
+  if (!email || !name || !role) return res.status(400).json({ error: 'Email, nom et rôle requis.' });
+  if (!ADMIN_ASSIGNABLE_ROLES.includes(role)) return res.status(400).json({ error: 'Rôle non autorisé.' });
+  if (role === ROLES.MANAGER && !module) return res.status(400).json({ error: 'Un gestionnaire doit être rattaché à un module.' });
+  if (findUserByEmail(email)) return res.status(409).json({ error: 'Un compte existe déjà avec cet email.' });
+  const temp = password && password.length >= 6 ? password : 'Gmdi@' + Math.floor(1000 + Math.random() * 9000);
+  const user = createUser({ email, password: temp, role, name, module: role === ROLES.MANAGER ? module : null, mustChangePassword: true });
+  audit.record({ user: req.user, ip: clientIp(req), action: `Création compte ${email} (${role})` });
+  res.json({ user: adminUserView(user), tempPassword: temp });
+});
+
+// Réinitialisation du mot de passe (génère un mot de passe temporaire).
+app.post('/api/admin/users/:id/reset-password', requireRole(ROLES.ADMIN), (req, res) => {
+  const u = findUserById(Number(req.params.id));
+  if (!u) return res.status(404).json({ error: 'Utilisateur introuvable.' });
+  const temp = 'Gmdi@' + Math.floor(1000 + Math.random() * 9000);
+  resetPasswordByAdmin(u, temp);
+  audit.record({ user: req.user, ip: clientIp(req), action: `Réinitialisation mot de passe ${u.email}` });
+  res.json({ tempPassword: temp });
+});
+
+// Activation / désactivation d'un compte.
+app.post('/api/admin/users/:id/active', requireRole(ROLES.ADMIN), (req, res) => {
+  const u = findUserById(Number(req.params.id));
+  if (!u) return res.status(404).json({ error: 'Utilisateur introuvable.' });
+  if (u.id === req.user.id) return res.status(400).json({ error: 'Vous ne pouvez pas désactiver votre propre compte.' });
+  setActive(u, !!(req.body || {}).active);
+  audit.record({ user: req.user, ip: clientIp(req), action: `${u.active ? 'Activation' : 'Désactivation'} compte ${u.email}` });
+  res.json({ user: adminUserView(u) });
+});
+
+// Gestion des rôles.
+app.post('/api/admin/users/:id/role', requireRole(ROLES.ADMIN), (req, res) => {
+  const u = findUserById(Number(req.params.id));
+  if (!u) return res.status(404).json({ error: 'Utilisateur introuvable.' });
+  const { role, module } = req.body || {};
+  if (!ADMIN_ASSIGNABLE_ROLES.includes(role) && role !== ROLES.CITIZEN) return res.status(400).json({ error: 'Rôle non autorisé.' });
+  if (role === ROLES.MANAGER && !module) return res.status(400).json({ error: 'Un gestionnaire doit être rattaché à un module.' });
+  setRole(u, role, module);
+  audit.record({ user: req.user, ip: clientIp(req), action: `Changement de rôle ${u.email} → ${role}${module ? ' (module ' + module + ')' : ''}` });
+  res.json({ user: adminUserView(u) });
+});
+
+// Journaux techniques (= journal d'audit consolidé).
+app.get('/api/admin/logs', requireRole(ROLES.ADMIN), (req, res) => {
+  res.json({ entries: audit.list({ limit: 500 }) });
 });
 
 // ============================================================================

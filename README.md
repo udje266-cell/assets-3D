@@ -5,10 +5,11 @@ des charges. GMDI n'est pas une juxtaposition d'applications indépendantes : c'
 **une seule plateforme**, structurée en modules métiers, qui partage une
 architecture commune de comptes, de rôles et de sécurité.
 
-Ce dépôt implémente cette architecture de bout en bout : la page de connexion
-unique, les trois espaces (Portail Citoyen, Back Office Maire, Back Office
-Gestionnaires), le flux de démarches unifié, la génération d'actes avec QR Code,
-et le journal d'audit.
+Ce dépôt implémente cette architecture de bout en bout : le site public, la page
+de connexion unique, les espaces (Portail Citoyen, Back Office Maire, Back Office
+Gestionnaires, Administration Système, Auditeur), le flux de démarches unifié à
+six statuts, les notifications, la génération d'actes avec QR Code, et le journal
+d'audit.
 
 ## Démarrage rapide
 
@@ -27,15 +28,17 @@ démarches de démonstration sont créés automatiquement. Ouvrez ensuite
 Les données sont persistées dans `data/db.json` (fichier ignoré par git). Il
 suffit de le supprimer pour repartir d'une base vierge.
 
-## Architecture des accès (cahier des charges §2)
+## Architecture des accès (cahier des charges §2 fonctionnel & technique)
 
-La plateforme repose sur **trois espaces distincts**, communs à tous les modules.
+La plateforme repose sur des **espaces distincts**, communs à tous les modules.
 
 | Espace | Rôle | Portée |
 | --- | --- | --- |
+| **Site public** | Aucun compte | Vitrine : présentation, actualités, services, contacts |
 | **Portail Citoyen** | Compte unique, auto-inscription | Ses propres démarches, tous modules |
 | **Back Office Maire** | Compte unique de supervision | Vue consolidée + détail de chaque module, **consultation seule** |
 | **Back Office Gestionnaire** | Un compte par module | Gestion opérationnelle **de son module uniquement** |
+| **Administration Système** | Compte technique | Comptes, mots de passe, rôles, activation, journaux — **jamais de métier** |
 | **Auditeur** | Lecture seule | Journal d'audit de tous les modules |
 
 Un citoyen ne voit que ses propres dossiers. Un gestionnaire ne peut pas accéder
@@ -61,12 +64,19 @@ Toute démarche, quel que soit le module, suit la même logique :
 
 ```
 Dépôt citoyen → paiement (si payant) → n° de suivi → notification gestionnaire
-→ vérification → validation (acte + QR Code) OU refus motivé → notification citoyen
+→ prise en charge → (complément demandé ↔ complété par le citoyen)
+→ validation (acte + QR Code) OU refus motivé → clôture → notifications citoyen
 → mise à jour des statistiques (gestionnaire + Maire)
 ```
 
+Les **six statuts officiels** (§6) : `En attente` · `En cours` · `À compléter` ·
+`Validé` · `Refusé` · `Terminé`.
+
+Chaque action importante génère une **notification** (interne, + Email/SMS simulés,
+§7), consultable via la cloche présente dans chaque espace connecté.
+
 Le socle est générique : ajouter un module dans `src/config.js` suffit à le voir
-apparaître dans les trois espaces, sans toucher à l'architecture des accès.
+apparaître dans tous les espaces, sans toucher à l'architecture des accès.
 
 ## Comptes de développement (cahier des charges §3)
 
@@ -84,6 +94,7 @@ de connexion** identifie automatiquement le rôle et le module.
 | Gestionnaire — Communication (06) | `communication@mairie-gmdi.ci` | `Communication@2026` |
 | Gestionnaire — Patrimoine (08) | `patrimoine@mairie-gmdi.ci` | `Patrimoine@2026` |
 | Auditeur | `auditeur@mairie-gmdi.ci` | `Auditeur@2026` |
+| Administrateur Système | `admin@mairie-gmdi.ci` | `Admin@2026` |
 
 Compte citoyen de démonstration : `koffi.aya@example.ci` / `Citoyen@2026`
 (ou créez votre propre compte depuis le Portail Citoyen).
@@ -94,6 +105,8 @@ Compte citoyen de démonstration : `koffi.aya@example.ci` / `Citoyen@2026`
 - **Message d'erreur générique** à la connexion (ne révèle pas l'élément erroné).
 - **Blocage temporaire** du compte après plusieurs échecs.
 - **Déconnexion automatique** après inactivité.
+- **Comptes activables / désactivables** par l'administrateur ; un compte
+  désactivé ne peut plus se connecter.
 - **Journal d'audit** commun : identité, date/heure, IP, module, action.
 - Séparation stricte des données entre modules et entre citoyens.
 - Actes authentifiables par **QR Code** via une page de vérification publique
@@ -103,18 +116,19 @@ Compte citoyen de démonstration : `koffi.aya@example.ci` / `Citoyen@2026`
 
 ```
 src/
-  config.js      Modules, rôles, démarches, comptes de seed (source de vérité)
-  store.js       Persistance JSON (remplaçable par une vraie base en production)
-  auth.js        Sessions, hachage, tentatives de connexion, rôles
-  audit.js       Journal d'audit commun
-  demarches.js   Flux unifié des démarches (création → paiement → validation/refus)
-  seed.js        Amorçage des comptes de dev + démonstrations
-  server.js      API REST + service des fichiers statiques (une seule application)
+  config.js         Modules, rôles, statuts, démarches, contenu du site public, seed
+  store.js          Persistance JSON (remplaçable par une vraie base en production)
+  auth.js           Sessions, hachage, tentatives, rôles, activation/désactivation
+  audit.js          Journal d'audit commun
+  notifications.js  Notifications (interne + Email/SMS simulés)
+  demarches.js      Flux unifié des démarches (6 statuts : dépôt → … → terminé)
+  seed.js           Amorçage des comptes de dev + démonstrations
+  server.js         API REST + service des fichiers statiques (une seule application)
 public/
-  index.html     Coquille de l'application
-  app.js         SPA (routeur par hash) : les trois espaces
-  styles.css     Charte GMDI aux couleurs de la Côte d'Ivoire (orange/blanc/vert)
-  verify.html    Vérification publique d'un acte via QR Code
+  index.html        Coquille de l'application
+  app.js            SPA (routeur par hash) : site public + tous les espaces
+  styles.css        Charte GMDI aux couleurs de la Côte d'Ivoire (orange/blanc/vert)
+  verify.html       Vérification publique d'un acte via QR Code
 ```
 
 ## Identité visuelle (couleurs de la Côte d'Ivoire)
@@ -126,6 +140,7 @@ et chaque « partie » porte sa propre teinte :
 - **Back Office Maire** → vert
 - **Back Office Gestionnaire** → vert (nuance distincte)
 - **Auditeur** → vert-ardoise
+- **Administration Système** → ardoise (espace technique)
 
 Un liseré tricolore surmonte chaque page, les titres sont soulignés d'un rappel
 orange/blanc/vert, et les validations restent en vert. La couleur de chaque

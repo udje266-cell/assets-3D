@@ -67,7 +67,7 @@ function closeModal() { modalRoot().innerHTML = ''; }
 // ---------------------------------------------------------------------------
 function roleLabel(u) {
   if (!u) return '';
-  return { mayor: 'Maire', manager: 'Gestionnaire', citizen: 'Citoyen', agent: 'Agent municipal', auditor: 'Auditeur' }[u.role] || u.role;
+  return { mayor: 'Maire', manager: 'Gestionnaire', citizen: 'Citoyen', agent: 'Agent municipal', auditor: 'Auditeur', admin: 'Administrateur' }[u.role] || u.role;
 }
 function topbar() {
   const u = state.user;
@@ -82,6 +82,7 @@ function topbar() {
       ${u ? `
         <div class="who"><b>${esc(u.name)}</b><span class="muted" style="color:#cbd5e6">${esc(u.email)}</span></div>
         <span class="role-chip">${esc(roleLabel(u))}${moduleName ? ' · ' + esc(moduleName) : ''}</span>
+        <button class="bell" id="bell" title="Notifications">🔔<span class="count" id="bell-count" style="display:none">0</span></button>
         <button class="btn secondary small" id="logout">Déconnexion</button>
       ` : ''}
     </div>`;
@@ -89,6 +90,41 @@ function topbar() {
 function wireTopbar() {
   const b = $('#logout');
   if (b) b.onclick = async () => { await api('/auth/logout', { method: 'POST' }); state.user = null; location.hash = '#/'; };
+  const bell = $('#bell');
+  if (bell) { bell.onclick = openNotifications; refreshBell(); }
+}
+
+// --- Notifications ---------------------------------------------------------
+async function refreshBell() {
+  try {
+    const { unread } = await api('/notifications');
+    const el = $('#bell-count');
+    if (!el) return;
+    if (unread > 0) { el.textContent = unread > 99 ? '99+' : unread; el.style.display = 'grid'; }
+    else el.style.display = 'none';
+  } catch { /* non connecté */ }
+}
+async function openNotifications() {
+  const { notifications } = await api('/notifications');
+  const body = notifications.length
+    ? `<ul class="notif-list">${notifications.map((n) => `
+        <li class="${n.read ? '' : 'unread'}">
+          <span class="notif-dot ${esc(n.type)}"></span>
+          <div>
+            <div class="n-title">${esc(n.title)}</div>
+            <div class="n-msg">${esc(n.message)}</div>
+            <div class="n-time">${fmtDate(n.createdAt)}${n.channels ? ' · ' + n.channels.map(esc).join(', ') : ''}</div>
+          </div>
+        </li>`).join('')}</ul>`
+    : '<div class="empty">Aucune notification.</div>';
+  const close = openModal({
+    title: 'Notifications',
+    bodyHTML: body,
+    footHTML: notifications.some((n) => !n.read) ? '<button class="btn ghost" id="n-close">Fermer</button><button class="btn" id="n-read">Tout marquer comme lu</button>' : '<button class="btn" id="n-close">Fermer</button>',
+  });
+  $('#n-close').onclick = close;
+  const r = $('#n-read');
+  if (r) r.onclick = async () => { await api('/notifications/read', { method: 'POST', body: {} }); close(); refreshBell(); };
 }
 
 // ---------------------------------------------------------------------------
@@ -130,6 +166,7 @@ function homeForUser(u) {
   if (u.role === 'mayor') return '#/mayor';
   if (u.role === 'manager') return '#/manager';
   if (u.role === 'auditor') return '#/audit';
+  if (u.role === 'admin') return '#/admin';
   return '#/citizen';
 }
 
@@ -141,26 +178,51 @@ route('/', async () => {
   await ensureSession();
   if (state.user) { location.hash = homeForUser(state.user); return; }
   setSpace('public');
+  const site = await api('/public/site');
   app().innerHTML = topbar() + `
-    <div class="landing">
-      <div class="logo-big" style="width:64px;height:64px;border-radius:14px;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:800;font-size:26px;margin:0 auto 18px">G</div>
-      <h1>Plateforme municipale GMDI</h1>
-      <p class="muted">Une plateforme unique et intégrée pour l'ensemble des services de la mairie : un compte citoyen unique, une supervision transversale pour le Maire, et un espace de gestion dédié par module.</p>
-      <div class="choices">
-        <div class="card choice">
-          <div class="icon">🧑‍💼</div>
-          <h3>Portail Citoyen</h3>
-          <p class="muted">Effectuez vos démarches en ligne, payez, suivez vos dossiers et recevez vos actes.</p>
-          <a class="btn" href="#/portail">Accéder au Portail Citoyen</a>
-        </div>
-        <div class="card choice">
-          <div class="icon">🏛️</div>
-          <h3>Back Office (personnel municipal)</h3>
-          <p class="muted">Maire, gestionnaires de module et auditeur. Une seule page de connexion sécurisée.</p>
-          <a class="btn secondary" href="#/login">Connexion Back Office</a>
+    <div class="public-hero">
+      <div class="inner">
+        <div class="logo-big" style="width:64px;height:64px;border-radius:14px;background:#fff;color:var(--ci-orange-strong);display:grid;place-items:center;font-weight:800;font-size:26px;margin:0 auto 6px">G</div>
+        <h1>${esc(site.mairie.nom)} — Plateforme GMDI</h1>
+        <p>${esc(site.mairie.slogan)}</p>
+        <div class="cta">
+          <a class="btn secondary" href="#/portail">Accéder au Portail Citoyen</a>
+          <a class="btn ghost" href="#/login">Connexion Back Office</a>
         </div>
       </div>
-      <p class="muted" style="margin-top:34px;font-size:12.5px">Vérifier l'authenticité d'un acte ? Scannez son QR Code ou saisissez son code sur la page de vérification.</p>
+    </div>
+
+    <div class="public-section">
+      <div class="grid cols-2" style="align-items:start">
+        <div>
+          <div class="section-title">🏛️ La mairie & GMDI</div>
+          <div class="card pad"><p class="muted" style="margin:0">${esc(site.mairie.presentation)}</p></div>
+          <div class="section-title">📞 Nous contacter</div>
+          <div class="card contact-card">
+            <div><b>Adresse</b><br><span class="muted">${esc(site.contacts.adresse)}</span></div>
+            <div><b>Téléphone</b><br><span class="muted">${esc(site.contacts.telephone)}</span></div>
+            <div><b>Email</b><br><span class="muted">${esc(site.contacts.email)}</span></div>
+            <div><b>Horaires</b><br><span class="muted">${esc(site.contacts.horaires)}</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="section-title">📰 Actualités</div>
+          <div class="grid" style="gap:12px">
+            ${site.actualites.map((a) => `<div class="card actu"><div class="date">${new Date(a.date).toLocaleDateString('fr-FR')}</div><h4>${esc(a.titre)}</h4><p>${esc(a.resume)}</p></div>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">🧩 Nos services en ligne</div>
+      <div class="grid cols-3">
+        ${site.services.map((s) => `
+          <div class="card module-card" onclick="location.hash='#/portail'">
+            <div class="head"><span class="icon">${s.icon}</span><div><div class="code">MODULE ${s.code}</div><div class="name">${esc(s.short)}</div></div></div>
+            <div>${s.demarches.slice(0, 3).map((d) => `<span class="service-tag">${esc(d)}</span>`).join('')}</div>
+          </div>`).join('')}
+      </div>
+
+      <p class="muted" style="margin-top:28px;font-size:12.5px;text-align:center">Vérifier l'authenticité d'un acte ? Scannez son QR Code ou saisissez son code sur la page de vérification.</p>
     </div>`;
   wireTopbar();
 });
@@ -239,6 +301,7 @@ function demoAccountsHint() {
       <div>Finances : <code>finances@mairie-gmdi.ci</code> / <code>Finances@2026</code></div>
       <div>Urbanisme : <code>urbanisme@mairie-gmdi.ci</code> / <code>Urbanisme@2026</code></div>
       <div>Auditeur : <code>auditeur@mairie-gmdi.ci</code> / <code>Auditeur@2026</code></div>
+      <div>Admin système : <code>admin@mairie-gmdi.ci</code> / <code>Admin@2026</code></div>
     </div></details>`;
 }
 
@@ -333,8 +396,8 @@ route('/citizen', async () => {
   setSpace('citizen');
 
   const { demarches } = await api('/citizen/demarches');
-  const pending = demarches.filter((d) => ['submitted', 'paid', 'in_review'].includes(d.status)).length;
-  const done = demarches.filter((d) => d.status === 'validated').length;
+  const pending = demarches.filter((d) => ['pending', 'in_progress', 'to_complete'].includes(d.status)).length;
+  const done = demarches.filter((d) => ['validated', 'completed'].includes(d.status)).length;
 
   app().innerHTML = topbar() + `
     <div class="container">
@@ -405,8 +468,8 @@ function openNewDemarche(moduleCode) {
       const formData = { description: $('#nd-desc').value.trim(), reference: $('#nd-ref').value.trim() };
       const r = await api('/citizen/demarches', { method: 'POST', body: { moduleCode, demarcheKey: key, formData } });
       close();
-      // Si payante et non payée, ouvre directement le paiement.
-      if (r.demarche.status === 'submitted' && r.demarche.fee > 0) openCitizenDemarche(r.demarche.id);
+      // Si un paiement est attendu, ouvre directement le paiement.
+      if (r.demarche.needsPayment) openCitizenDemarche(r.demarche.id);
       else render();
     } catch (err) {
       $('#nd-alert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`;
@@ -416,7 +479,8 @@ function openNewDemarche(moduleCode) {
 
 async function openCitizenDemarche(id) {
   const { demarche: d } = await api('/citizen/demarches/' + id);
-  const canPay = d.status === 'submitted' && d.fee > 0;
+  const canPay = d.needsPayment;
+  const toComplete = d.status === 'to_complete';
   const body = `
     <div id="cd-alert"></div>
     <dl class="kv">
@@ -425,23 +489,35 @@ async function openCitizenDemarche(id) {
       <dt>Démarche</dt><dd>${esc(d.demarcheLabel)}</dd>
       <dt>Statut</dt><dd>${badge(d.status)}</dd>
       <dt>Montant</dt><dd>${d.fee ? fcfa(d.fee) : 'Gratuit'}</dd>
-      ${d.payment ? `<dt>Paiement</dt><dd>${esc(d.payment.method)}${d.payment.reference ? ' · ' + esc(d.payment.reference) : ''}</dd>` : ''}
+      ${d.payment ? `<dt>Paiement</dt><dd>${esc(d.payment.method)}${d.payment.receipt ? ' · reçu ' + esc(d.payment.receipt) : ''}</dd>` : ''}
       ${d.rejectReason ? `<dt>Motif de refus</dt><dd style="color:var(--red)">${esc(d.rejectReason)}</dd>` : ''}
     </dl>
+    ${toComplete ? `<div class="alert info" style="margin-top:14px"><b>Complément demandé :</b> ${esc(d.completionRequest || '')}</div>
+      <label class="field"><span>Votre réponse / complément</span><textarea id="cd-complete" placeholder="Ajoutez les informations demandées…"></textarea></label>` : ''}
     ${d.acte ? acteBlock(d.acte) : ''}
     ${canPay ? paymentBlock() : ''}
     <div class="section-title" style="margin:20px 0 8px;font-size:14px">Historique</div>
     <ul class="timeline">${d.history.map((h) => `<li><b>${esc(h.action)}</b><br><span class="muted">${fmtDate(h.at)} · ${esc(h.by)}</span></li>`).join('')}</ul>`;
-  const foot = canPay ? `<button class="btn ghost" id="cd-close">Fermer</button><button class="btn success" id="cd-pay">Payer maintenant</button>` : `<button class="btn" id="cd-close">Fermer</button>`;
+  let foot = `<button class="btn" id="cd-close">Fermer</button>`;
+  if (canPay) foot = `<button class="btn ghost" id="cd-close">Fermer</button><button class="btn success" id="cd-pay">Payer maintenant</button>`;
+  else if (toComplete) foot = `<button class="btn ghost" id="cd-close">Fermer</button><button class="btn" id="cd-send">Envoyer le complément</button>`;
   const close = openModal({ title: 'Suivi de la démarche', bodyHTML: body, footHTML: foot });
   $('#cd-close').onclick = close;
+  const err = (m) => ($('#cd-alert').innerHTML = `<div class="alert error">${esc(m)}</div>`);
   if (canPay) {
     $('#cd-pay').onclick = async () => {
       try {
         const method = $('#pay-method').value;
         await api(`/citizen/demarches/${id}/pay`, { method: 'POST', body: { method } });
         close(); render();
-      } catch (err) { $('#cd-alert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+      } catch (e) { err(e.message); }
+    };
+  } else if (toComplete) {
+    $('#cd-send').onclick = async () => {
+      try {
+        await api(`/citizen/demarches/${id}/complete`, { method: 'POST', body: { info: $('#cd-complete').value } });
+        close(); render();
+      } catch (e) { err(e.message); }
     };
   }
 }
@@ -486,8 +562,8 @@ route('/manager', async () => {
       <p class="page-sub">Gestion opérationnelle de votre module uniquement. Vous n'avez accès à aucun autre module.</p>
 
       <div class="grid cols-4" style="margin-bottom:8px">
-        <div class="card stat"><div class="label">En attente</div><div class="value">${stats.pending}</div></div>
-        <div class="card stat"><div class="label">Validées</div><div class="value" style="color:var(--green)">${stats.validated}</div></div>
+        <div class="card stat"><div class="label">À traiter</div><div class="value">${stats.pending}</div></div>
+        <div class="card stat"><div class="label">Validées / Terminées</div><div class="value" style="color:var(--green)">${stats.validated + stats.completed}</div></div>
         <div class="card stat"><div class="label">Refusées</div><div class="value" style="color:var(--red)">${stats.rejected}</div></div>
         <div class="card stat"><div class="label">Recettes encaissées</div><div class="value small">${fcfa(stats.revenue)}</div></div>
       </div>
@@ -496,6 +572,7 @@ route('/manager', async () => {
         <button data-f="all" class="active">Tous (${demarches.length})</button>
         <button data-f="pending">À traiter (${stats.pending})</button>
         <button data-f="validated">Validés</button>
+        <button data-f="completed">Terminés</button>
         <button data-f="rejected">Refusés</button>
       </div>
       <div class="card table-wrap" id="mgr-table"></div>
@@ -505,8 +582,9 @@ route('/manager', async () => {
   let filter = 'all';
   const paint = () => {
     let rows = demarches;
-    if (filter === 'pending') rows = demarches.filter((d) => ['submitted', 'paid', 'in_review'].includes(d.status));
+    if (filter === 'pending') rows = demarches.filter((d) => ['pending', 'in_progress', 'to_complete'].includes(d.status));
     else if (filter === 'validated') rows = demarches.filter((d) => d.status === 'validated');
+    else if (filter === 'completed') rows = demarches.filter((d) => d.status === 'completed');
     else if (filter === 'rejected') rows = demarches.filter((d) => d.status === 'rejected');
     const t = $('#mgr-table');
     if (!rows.length) { t.innerHTML = '<div class="empty">Aucun dossier dans cette catégorie.</div>'; return; }
@@ -533,54 +611,65 @@ async function openManagerDemarche(id) {
   const { demarches } = await api('/manager/demarches');
   const d = demarches.find((x) => x.id === id);
   if (!d) return;
-  const actionable = ['submitted', 'paid', 'in_review'].includes(d.status);
+  const open = ['pending', 'in_progress', 'to_complete'].includes(d.status);
+  const canValidate = ['pending', 'in_progress'].includes(d.status);
+  const canRequest = ['pending', 'in_progress'].includes(d.status);
+  const canClose = d.status === 'validated';
+  const unpaid = d.needsPayment;
   const body = `
     <div id="md-alert"></div>
+    ${unpaid ? '<div class="alert info">Paiement en attente : la validation sera possible une fois le paiement reçu.</div>' : ''}
     <dl class="kv">
       <dt>N° de suivi</dt><dd><code>${esc(d.tracking)}</code></dd>
       <dt>Démarche</dt><dd>${esc(d.demarcheLabel)}</dd>
       <dt>Citoyen</dt><dd>${esc(d.citizenName)}</dd>
       <dt>Statut</dt><dd>${badge(d.status)}</dd>
       <dt>Priorité</dt><dd>${prioBadge(d.priority)}</dd>
-      <dt>Paiement</dt><dd>${d.payment ? esc(d.payment.method) + ' · ' + fcfa(d.payment.amount) : (d.fee ? 'En attente' : 'Gratuit')}</dd>
+      <dt>Paiement</dt><dd>${d.payment ? esc(d.payment.method) + ' · ' + fcfa(d.payment.amount) + (d.payment.receipt ? ' · ' + esc(d.payment.receipt) : '') : (d.fee ? '<span style="color:var(--red)">En attente</span>' : 'Gratuit')}</dd>
       ${d.formData && d.formData.description ? `<dt>Description</dt><dd>${esc(d.formData.description)}</dd>` : ''}
       ${d.formData && d.formData.reference ? `<dt>Référence</dt><dd>${esc(d.formData.reference)}</dd>` : ''}
+      ${d.formData && d.formData.complement ? `<dt>Complément citoyen</dt><dd>${esc(d.formData.complement)}</dd>` : ''}
+      ${d.completionRequest ? `<dt>Complément demandé</dt><dd style="color:var(--amber)">${esc(d.completionRequest)}</dd>` : ''}
       ${d.rejectReason ? `<dt>Motif refus</dt><dd style="color:var(--red)">${esc(d.rejectReason)}</dd>` : ''}
     </dl>
     ${d.acte ? acteBlock(d.acte) : ''}
-    ${actionable ? `
+    ${open ? `
       <label class="field" style="margin-top:16px"><span>Priorité du dossier</span>
         <select id="md-prio">
           <option value="normale"${d.priority === 'normale' ? ' selected' : ''}>Normale</option>
           <option value="prioritaire"${d.priority === 'prioritaire' ? ' selected' : ''}>Prioritaire</option>
           <option value="urgente"${d.priority === 'urgente' ? ' selected' : ''}>Urgente</option>
         </select></label>
-      <label class="field"><span>Motif (obligatoire en cas de refus)</span>
-        <textarea id="md-reason" placeholder="Ex. pièces manquantes, zone non constructible…"></textarea></label>` : ''}
+      <label class="field"><span>Motif de refus / message de complément</span>
+        <textarea id="md-reason" placeholder="Motif du refus, ou pièces/informations à compléter…"></textarea></label>` : ''}
     <div class="section-title" style="margin:16px 0 8px;font-size:14px">Historique</div>
     <ul class="timeline">${d.history.map((h) => `<li><b>${esc(h.action)}</b><br><span class="muted">${fmtDate(h.at)} · ${esc(h.by)}</span></li>`).join('')}</ul>`;
-  const foot = actionable
-    ? `<button class="btn ghost small" id="md-prio-save">Enregistrer priorité</button>
+  let foot;
+  if (open) {
+    foot = `<button class="btn ghost small" id="md-prio-save">Priorité</button>
+       ${canRequest ? '<button class="btn ghost small" id="md-request">À compléter</button>' : ''}
        <div style="flex:1"></div>
        <button class="btn danger" id="md-reject">Refuser</button>
-       <button class="btn success" id="md-validate">Valider &amp; générer l'acte</button>`
-    : `<button class="btn" id="md-close">Fermer</button>`;
+       <button class="btn success" id="md-validate"${unpaid ? ' disabled title="Paiement en attente"' : ''}>Valider &amp; générer l'acte</button>`;
+  } else if (canClose) {
+    foot = `<button class="btn ghost" id="md-close">Fermer</button><button class="btn success" id="md-closefile">Clôturer (Terminé)</button>`;
+  } else {
+    foot = `<button class="btn" id="md-close">Fermer</button>`;
+  }
   const close = openModal({ title: 'Traitement du dossier', bodyHTML: body, footHTML: foot });
   const err = (m) => ($('#md-alert').innerHTML = `<div class="alert error">${esc(m)}</div>`);
+  const act = async (path, payload) => {
+    try { await api(`/manager/demarches/${id}/${path}`, { method: 'POST', body: payload }); close(); render(); }
+    catch (e) { err(e.message); }
+  };
   if ($('#md-close')) $('#md-close').onclick = close;
-  if (actionable) {
-    $('#md-prio-save').onclick = async () => {
-      try { await api(`/manager/demarches/${id}/priority`, { method: 'POST', body: { priority: $('#md-prio').value } }); close(); render(); }
-      catch (e) { err(e.message); }
-    };
-    $('#md-validate').onclick = async () => {
-      try { await api(`/manager/demarches/${id}/validate`, { method: 'POST' }); close(); render(); }
-      catch (e) { err(e.message); }
-    };
-    $('#md-reject').onclick = async () => {
-      try { await api(`/manager/demarches/${id}/reject`, { method: 'POST', body: { reason: $('#md-reason').value } }); close(); render(); }
-      catch (e) { err(e.message); }
-    };
+  if (open) {
+    $('#md-prio-save').onclick = () => act('priority', { priority: $('#md-prio').value });
+    if ($('#md-request')) $('#md-request').onclick = () => act('request-completion', { message: $('#md-reason').value });
+    $('#md-validate').onclick = () => act('validate', {});
+    $('#md-reject').onclick = () => act('reject', { reason: $('#md-reason').value });
+  } else if (canClose) {
+    $('#md-closefile').onclick = () => act('close', {});
   }
 }
 
@@ -605,7 +694,7 @@ route('/mayor', async (sub) => {
       <div class="grid cols-4" style="margin-bottom:8px">
         <div class="card stat"><div class="label">Démarches totales</div><div class="value">${totals.total}</div></div>
         <div class="card stat"><div class="label">En attente</div><div class="value" style="color:var(--amber)">${totals.pending}</div></div>
-        <div class="card stat"><div class="label">Validées</div><div class="value" style="color:var(--green)">${totals.validated}</div></div>
+        <div class="card stat"><div class="label">Validées / Terminées</div><div class="value" style="color:var(--green)">${totals.validated + totals.completed}</div></div>
         <div class="card stat"><div class="label">Recettes consolidées</div><div class="value small">${fcfa(totals.revenue)}</div></div>
       </div>
       <div class="grid cols-2" style="margin-bottom:8px">
@@ -686,6 +775,164 @@ route('/audit', async () => {
     </div>`;
   wireTopbar();
 });
+
+// ===========================================================================
+// ADMINISTRATION SYSTÈME — gestion technique des comptes (CDC technique §2.5)
+// ===========================================================================
+route('/admin', async (sub) => {
+  const u = await ensureSession();
+  await ensureMeta();
+  if (!u) { location.hash = '#/login'; return; }
+  if (u.role !== 'admin') { location.hash = homeForUser(u); return; }
+  setSpace('admin');
+
+  if (sub[0] === 'logs') return renderAdminLogs();
+
+  const { users, modules } = await api('/admin/users');
+  const pro = users.filter((x) => x.role !== 'citizen');
+  const citizens = users.filter((x) => x.role === 'citizen');
+  app().innerHTML = topbar() + `
+    <div class="container">
+      <h1 class="page-title">Administration Système</h1>
+      <p class="page-sub">Gestion technique de la plateforme : comptes, mots de passe, rôles et journaux. L'administrateur n'intervient jamais dans les traitements métiers.</p>
+
+      <div class="grid cols-4" style="margin-bottom:8px">
+        <div class="card stat"><div class="label">Comptes pro.</div><div class="value">${pro.length}</div></div>
+        <div class="card stat"><div class="label">Comptes citoyens</div><div class="value">${citizens.length}</div></div>
+        <div class="card stat"><div class="label">Comptes actifs</div><div class="value" style="color:var(--green)">${users.filter((x) => x.active).length}</div></div>
+        <div class="card stat"><div class="label">Désactivés</div><div class="value" style="color:var(--red)">${users.filter((x) => !x.active).length}</div></div>
+      </div>
+
+      <div class="btn-row" style="margin-bottom:6px">
+        <button class="btn" id="new-account">+ Créer un compte professionnel</button>
+        <a class="btn secondary" href="#/admin/logs">Journaux techniques</a>
+      </div>
+
+      <div class="section-title">👥 Comptes professionnels</div>
+      <div class="card table-wrap" id="pro-table"></div>
+
+      <div class="section-title">🧑 Comptes citoyens</div>
+      <div class="card table-wrap" id="cit-table"></div>
+    </div>`;
+  wireTopbar();
+
+  const rowActions = (x) => `
+    <div class="admin-actions">
+      <button class="btn ghost small" data-reset="${x.id}">Réinit. MDP</button>
+      <button class="btn ${x.active ? 'danger' : 'success'} small" data-active="${x.id}" data-to="${x.active ? '0' : '1'}">${x.active ? 'Désactiver' : 'Activer'}</button>
+      <button class="btn ghost small" data-role="${x.id}">Rôle</button>
+    </div>`;
+  const renderTable = (sel, list, showModule) => {
+    const t = $(sel);
+    if (!list.length) { t.innerHTML = '<div class="empty">Aucun compte.</div>'; return; }
+    t.innerHTML = `<table><thead><tr><th>Nom</th><th>Email</th><th>Rôle</th>${showModule ? '<th>Module</th>' : ''}<th>État</th><th>Actions</th></tr></thead>
+      <tbody>${list.map((x) => `<tr>
+        <td>${esc(x.name)}</td>
+        <td><code>${esc(x.email)}</code></td>
+        <td>${esc(roleLabel(x))}</td>
+        ${showModule ? `<td>${x.module ? 'Module ' + esc(x.module) : '<span class="muted">—</span>'}</td>` : ''}
+        <td><span class="badge ${x.active ? 'active' : 'inactive'}">${x.active ? 'Actif' : 'Désactivé'}</span>${x.mustChangePassword ? ' <span class="badge to_complete">MDP à changer</span>' : ''}</td>
+        <td>${rowActions(x)}</td></tr>`).join('')}</tbody></table>`;
+    t.querySelectorAll('[data-reset]').forEach((b) => (b.onclick = () => adminReset(Number(b.dataset.reset))));
+    t.querySelectorAll('[data-active]').forEach((b) => (b.onclick = () => adminSetActive(Number(b.dataset.active), b.dataset.to === '1')));
+    t.querySelectorAll('[data-role]').forEach((b) => (b.onclick = () => adminChangeRole(Number(b.dataset.role), list.find((x) => x.id === Number(b.dataset.role)), modules)));
+  };
+  renderTable('#pro-table', pro, true);
+  renderTable('#cit-table', citizens, false);
+  $('#new-account').onclick = () => adminCreateAccount(modules);
+});
+
+function adminCreateAccount(modules) {
+  const close = openModal({
+    title: 'Créer un compte professionnel',
+    bodyHTML: `
+      <div id="ac-alert"></div>
+      <label class="field"><span>Nom complet</span><input id="ac-name" placeholder="Prénom Nom" /></label>
+      <label class="field"><span>Adresse professionnelle</span><input id="ac-email" type="email" placeholder="service@mairie-gmdi.ci" /></label>
+      <label class="field"><span>Rôle</span>
+        <select id="ac-role">
+          <option value="manager">Gestionnaire de module</option>
+          <option value="mayor">Maire</option>
+          <option value="auditor">Auditeur</option>
+          <option value="admin">Administrateur</option>
+        </select></label>
+      <label class="field" id="ac-modwrap"><span>Module de rattachement</span>
+        <select id="ac-module">${modules.map((m) => `<option value="${m.code}">Module ${m.code} — ${esc(m.name)}</option>`).join('')}</select></label>
+      <p class="muted" style="font-size:12px">Un mot de passe temporaire sera généré ; le compte devra le changer à la première connexion.</p>`,
+    footHTML: `<button class="btn ghost" id="ac-cancel">Annuler</button><button class="btn" id="ac-create">Créer le compte</button>`,
+  });
+  const toggleMod = () => ($('#ac-modwrap').style.display = $('#ac-role').value === 'manager' ? 'block' : 'none');
+  $('#ac-role').onchange = toggleMod; toggleMod();
+  $('#ac-cancel').onclick = close;
+  $('#ac-create').onclick = async () => {
+    try {
+      const body = { name: $('#ac-name').value.trim(), email: $('#ac-email').value.trim(), role: $('#ac-role').value };
+      if (body.role === 'manager') body.module = $('#ac-module').value;
+      const r = await api('/admin/users', { method: 'POST', body });
+      close();
+      openModal({ title: 'Compte créé', bodyHTML: `<p>Compte <b>${esc(r.user.email)}</b> créé.</p><p>Mot de passe temporaire : <code style="font-size:15px">${esc(r.tempPassword)}</code></p><p class="muted" style="font-size:12.5px">Communiquez-le au titulaire ; il devra le modifier à la première connexion.</p>`, footHTML: '<button class="btn" onclick="document.getElementById(\'modal-root\').innerHTML=\'\';location.reload()">Fermer</button>' });
+    } catch (e) { $('#ac-alert').innerHTML = `<div class="alert error">${esc(e.message)}</div>`; }
+  };
+}
+
+async function adminReset(id) {
+  try {
+    const r = await api(`/admin/users/${id}/reset-password`, { method: 'POST' });
+    openModal({ title: 'Mot de passe réinitialisé', bodyHTML: `<p>Nouveau mot de passe temporaire :</p><p><code style="font-size:16px">${esc(r.tempPassword)}</code></p><p class="muted" style="font-size:12.5px">L'utilisateur devra le changer à sa prochaine connexion.</p>`, footHTML: '<button class="btn" id="ok">Fermer</button>' });
+    $('#ok').onclick = closeModal;
+  } catch (e) { alert(e.message); }
+}
+async function adminSetActive(id, active) {
+  try { await api(`/admin/users/${id}/active`, { method: 'POST', body: { active } }); render(); }
+  catch (e) { alert(e.message); }
+}
+function adminChangeRole(id, user, modules) {
+  const close = openModal({
+    title: 'Changer le rôle',
+    bodyHTML: `
+      <div id="rc-alert"></div>
+      <p class="muted" style="font-size:13px">${esc(user.name)} — <code>${esc(user.email)}</code></p>
+      <label class="field"><span>Nouveau rôle</span>
+        <select id="rc-role">
+          ${['manager', 'mayor', 'auditor', 'admin', 'citizen', 'agent'].map((r) => `<option value="${r}"${user.role === r ? ' selected' : ''}>${esc(roleLabel({ role: r }))}</option>`).join('')}
+        </select></label>
+      <label class="field" id="rc-modwrap"><span>Module de rattachement</span>
+        <select id="rc-module">${modules.map((m) => `<option value="${m.code}"${user.module === m.code ? ' selected' : ''}>Module ${m.code} — ${esc(m.name)}</option>`).join('')}</select></label>`,
+    footHTML: `<button class="btn ghost" id="rc-cancel">Annuler</button><button class="btn" id="rc-save">Enregistrer</button>`,
+  });
+  const toggle = () => ($('#rc-modwrap').style.display = $('#rc-role').value === 'manager' ? 'block' : 'none');
+  $('#rc-role').onchange = toggle; toggle();
+  $('#rc-cancel').onclick = close;
+  $('#rc-save').onclick = async () => {
+    try {
+      const body = { role: $('#rc-role').value };
+      if (body.role === 'manager') body.module = $('#rc-module').value;
+      await api(`/admin/users/${id}/role`, { method: 'POST', body });
+      close(); render();
+    } catch (e) { $('#rc-alert').innerHTML = `<div class="alert error">${esc(e.message)}</div>`; }
+  };
+}
+
+async function renderAdminLogs() {
+  const { entries } = await api('/admin/logs');
+  app().innerHTML = topbar() + `
+    <div class="container">
+      <p style="margin:0 0 6px"><a href="#/admin">← Administration</a></p>
+      <h1 class="page-title">Journaux techniques</h1>
+      <p class="page-sub">Historique consolidé des actions (${entries.length} entrées).</p>
+      <div class="card table-wrap">
+        ${entries.length ? `<table><thead><tr><th>Date / heure</th><th>Utilisateur</th><th>Module</th><th>Action</th><th>IP</th></tr></thead>
+        <tbody>${entries.map((e) => `<tr>
+          <td class="muted">${fmtDate(e.timestamp)}</td>
+          <td>${esc(e.userLabel)}${e.userEmail ? `<br><span class="muted" style="font-size:11px">${esc(e.userEmail)}</span>` : ''}</td>
+          <td>${e.module ? 'Module ' + esc(e.module) : '<span class="muted">—</span>'}</td>
+          <td>${esc(e.action)}</td>
+          <td class="muted">${esc(e.ip)}</td></tr>`).join('')}</tbody></table>`
+        : '<div class="empty">Aucune entrée.</div>'}
+      </div>
+    </div>`;
+  wireTopbar();
+}
 
 // ===========================================================================
 // Vérification publique d'un acte (route SPA, aussi servie par verify.html)

@@ -46,7 +46,9 @@ export function publicUser(u) {
     role: u.role,
     module: u.module || null,
     name: u.name,
+    active: u.active !== false,
     mustChangePassword: !!u.mustChangePassword,
+    createdAt: u.createdAt,
   };
 }
 
@@ -58,6 +60,7 @@ export function createUser({ email, password, role, name, module = null, mustCha
     role,
     module,
     name: name || email,
+    active: true,
     mustChangePassword,
     failedAttempts: 0,
     lockedUntil: 0,
@@ -76,6 +79,11 @@ export function attemptLogin(email, password) {
   const genericError = { ok: false, error: 'Identifiants incorrects.' };
 
   if (!user) return genericError;
+
+  // Compte désactivé par l'administrateur système (CDC technique §2.5).
+  if (user.active === false) {
+    return { ok: false, error: 'Ce compte est désactivé. Contactez l\'administrateur.' };
+  }
 
   const now = Date.now();
   if (user.lockedUntil && user.lockedUntil > now) {
@@ -144,8 +152,23 @@ export function resetPasswordByAdmin(user, tempPassword) {
   saveSoon();
 }
 
+// Activation / désactivation d'un compte par l'administrateur (CDC technique §2.5).
+export function setActive(user, active) {
+  user.active = !!active;
+  if (active) { user.failedAttempts = 0; user.lockedUntil = 0; }
+  saveSoon();
+}
+
+// Modification du rôle / rattachement par l'administrateur (gestion des rôles).
+export function setRole(user, role, module = null) {
+  user.role = role;
+  user.module = role === ROLES.MANAGER ? module : null;
+  saveSoon();
+}
+
 export function labelForUser(user) {
   if (!user) return 'Inconnu';
+  if (user.role === ROLES.ADMIN) return 'Administrateur';
   if (user.role === ROLES.MAYOR) return 'Maire';
   if (user.role === ROLES.AUDITOR) return 'Auditeur';
   if (user.role === ROLES.MANAGER) return `Gestionnaire ${user.module}`;
