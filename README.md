@@ -131,6 +131,28 @@ public/
   verify.html       Vérification publique d'un acte via QR Code
 ```
 
+## Application Android (APK)
+
+L'application est empaquetée en APK via **Capacitor**. Pour que l'app fonctionne
+**sans serveur**, un backend embarqué (`public/offline-api.js`) réimplémente toute
+l'API dans le navigateur avec persistance `localStorage` (mode démo autonome).
+
+Générer l'APK (nécessite JDK 17+ et le SDK Android) :
+
+```bash
+npm install
+npm run apk        # build www/ hors-ligne → cap sync → gradlew assembleDebug
+# APK : android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+- `npm run mobile` prépare uniquement `www/` (public/ + backend embarqué injecté).
+- Le mode embarqué s'active automatiquement : `public/app.js` route ses appels
+  vers `window.__gmdiApi` s'il existe, sinon vers le serveur (`fetch /api`).
+- `window.__gmdiReset()` (console) réinitialise les données locales de démo.
+
+App : `ci.gmdi.app` · label « GMDI » · minSdk 22 · targetSdk 34.
+Installez l'APK debug en autorisant les « sources inconnues ».
+
 ## Identité visuelle (couleurs de la Côte d'Ivoire)
 
 L'interface reprend les couleurs du drapeau ivoirien — **orange, blanc, vert** —

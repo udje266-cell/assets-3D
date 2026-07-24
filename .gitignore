@@ -3,3 +3,9 @@ data/
 *.log
 .DS_Store
 npm-debug.log*
+
+# Build mobile (générés : régénérés par `npm run mobile` + `npx cap add android`)
+www/
+android/
+dist/
+*.apk

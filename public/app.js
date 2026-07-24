@@ -20,6 +20,8 @@ function fmtDate(iso) {
 }
 
 async function api(path, { method = 'GET', body } = {}) {
+  // Mode embarqué (APK / hors-ligne) : un backend en mémoire fournit window.__gmdiApi.
+  if (window.__gmdiApi) return window.__gmdiApi(path, { method, body });
   const opts = { method, headers: {} };
   if (body !== undefined) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
   const res = await fetch('/api' + path, opts);
