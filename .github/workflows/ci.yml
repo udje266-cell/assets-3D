@@ -1,0 +1,48 @@
+name: Intégration continue
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  verifier:
+    name: Typage, tests et construction
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: mobilite
+          POSTGRES_PASSWORD: mobilite
+          POSTGRES_DB: mobilite_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U mobilite"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      TEST_DATABASE_URL: postgres://mobilite:mobilite@localhost:5432/mobilite_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Contrôle de typage
+        run: npm run typecheck
+
+      - name: Tests (unitaires et intégration)
+        run: npm test
+
+      - name: Construction
+        run: npm run build
