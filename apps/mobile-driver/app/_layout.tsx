@@ -2,6 +2,9 @@ import { palette } from '@mobilite/shared';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+// Import pour effet de bord : la tâche de localisation doit être déclarée au
+// chargement de l'application, avant que le système ne puisse la réveiller.
+import '../src/background-location';
 import { SessionProvider } from '../src/session';
 
 export default function RootLayout() {

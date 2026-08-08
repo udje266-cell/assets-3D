@@ -10,10 +10,14 @@ interface d'administration et les deux applications mobiles. Les applications
 mobiles ne portent aucune règle métier — elles consomment l'API décrite dans
 `docs/api.md`.
 
-Ce qui reste tient à des dépendances externes (prestataire de paiement,
+Ce qui reste tient à des **dépendances externes** (prestataire de paiement,
 cartographie, passerelle SMS, stockage de documents) et à ce qui ne peut être
-validé qu'en conditions réelles : essais sur appareils, campagne de tests
+validé qu'**en conditions réelles** : essais sur appareils, campagne de tests
 utilisateurs, publication sur les magasins d'applications.
+
+Autrement dit, le code n'est plus le chemin critique : ce sont l'étude
+réglementaire (§28) et le choix du prestataire de paiement (§9), dont les délais
+se comptent en semaines, qui conditionnent la suite.
 
 | Livrable attendu (§27) | État |
 |---|---|
@@ -26,8 +30,8 @@ utilisateurs, publication sur les magasins d'applications.
 | Intégration cartographique | Contrat défini, fournisseur à brancher |
 | Intégration des paiements | Contrat défini, prestataire à brancher |
 | Documentation technique | **Livré** (`docs/`) |
-| Documentation utilisateur et administrateur | À rédiger |
-| Procédure de maintenance et de sauvegarde | À rédiger |
+| Documentation utilisateur et administrateur | **Livrée** (`guide-utilisateur.md`, `guide-administrateur.md`) |
+| Procédure de maintenance et de sauvegarde | **Livrée** (`exploitation.md`) |
 | Rapport de tests avant mise en production | Suite automatisée livrée ; campagne à conduire |
 
 ## MVP — première version (§21)
@@ -44,7 +48,8 @@ utilisateurs, publication sur les magasins d'applications.
 | Chauffeur : historique et revenus | **Livré** |
 | Administration : tableau de bord, chauffeurs, clients, courses, tarifs, paiements, statistiques | **Livré** |
 | Applications mobiles | **Livrées** |
-| Navigation embarquée | À faire : ouvrir l'application de navigation du téléphone depuis l'écran de course |
+| Navigation embarquée | **Livrée** — l'écran de course ouvre l'application de navigation du téléphone |
+| Position en arrière-plan pendant une course | **Livrée** — suivi écran éteint, arrêté hors course |
 | Notifications push | Enregistrées côté serveur ; FCM/APNs à brancher |
 | Téléversement des documents chauffeur | L'écran transmet une URL ; dépôt de fichier à brancher |
 

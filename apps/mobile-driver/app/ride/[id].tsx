@@ -12,7 +12,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import {
+  requestBackgroundPermission,
+  startBackgroundTracking,
+  stopBackgroundTracking,
+} from '../../src/background-location';
 import { Button, Card, ErrorNotice, Loader, Row } from '../../src/components';
+import { navigateTo } from '../../src/navigation';
 import { useSession } from '../../src/session';
 
 /**
@@ -66,6 +72,42 @@ export default function DriverRideScreen() {
       animated: true,
     });
   }, [ride]);
+
+  /**
+   * Suivi en arrière-plan pendant la course uniquement (§4).
+   *
+   * Il démarre dès que le chauffeur est engagé et s'arrête au premier état non
+   * actif : ni la batterie ni la vie privée du chauffeur n'ont à supporter une
+   * localisation continue en dehors d'une course.
+   */
+  useEffect(() => {
+    const active =
+      ride !== null &&
+      ['driver_assigned', 'driver_en_route', 'driver_arrived', 'in_progress'].includes(
+        ride.status,
+      );
+
+    if (!active) {
+      void stopBackgroundTracking();
+      return;
+    }
+
+    let cancelled = false;
+    void (async () => {
+      // Un refus n'est pas bloquant : la course se déroule, seul le suivi
+      // écran éteint est perdu.
+      const granted = await requestBackgroundPermission();
+      if (cancelled || !granted) return;
+      await startBackgroundTracking();
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ride?.status, ride]);
+
+  // Quitter l'écran ne doit jamais laisser le suivi tourner indéfiniment.
+  useEffect(() => () => void stopBackgroundTracking(), []);
 
   async function act(action: () => Promise<unknown>, onDone?: () => void) {
     setBusy(true);
@@ -132,6 +174,21 @@ export default function DriverRideScreen() {
       default:
         return null;
     }
+  })();
+
+  /**
+   * Cible du guidage : le client tant qu'il n'est pas à bord, la destination
+   * ensuite. Le chauffeur n'a pas à choisir — à chaque instant de la course,
+   * une seule destination a du sens.
+   */
+  const navigationTarget: { point: typeof ride.pickup; label: string | null } | null = (() => {
+    if (['driver_assigned', 'driver_en_route', 'driver_arrived'].includes(status)) {
+      return { point: ride.pickup, label: ride.pickup.address ?? 'Point de départ' };
+    }
+    if (status === 'in_progress') {
+      return { point: ride.dropoff, label: ride.dropoff.address ?? 'Destination' };
+    }
+    return null;
   })();
 
   const cancellable = ['driver_assigned', 'driver_en_route', 'driver_arrived'].includes(status);
@@ -233,6 +290,19 @@ export default function DriverRideScreen() {
               </Text>
             )}
           </Card>
+        ) : null}
+
+        {navigationTarget ? (
+          <Button
+            label={
+              status === 'in_progress'
+                ? 'Naviguer vers la destination'
+                : 'Naviguer vers le client'
+            }
+            variant="secondary"
+            onPress={() => void navigateTo(navigationTarget.point, navigationTarget.label)}
+            style={{ marginTop: spacing.md }}
+          />
         ) : null}
 
         {step ? (

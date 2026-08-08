@@ -18,7 +18,14 @@
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Votre position permet de vous proposer les courses proches et de guider le client jusqu’à vous.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Votre position continue de remonter pendant une course afin que le client suive votre trajet, même écran éteint.",
-        "UIBackgroundModes": ["location"]
+        "UIBackgroundModes": [
+          "location"
+        ],
+        "LSApplicationQueriesSchemes": [
+          "waze",
+          "comgooglemaps",
+          "maps"
+        ]
       }
     },
     "android": {

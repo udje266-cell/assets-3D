@@ -100,7 +100,46 @@ de plus de deux minutes — sans elle, aucune course ne lui est proposée. La
 position part par le canal temps réel et par l'API : la seconde voie garantit
 l'enregistrement si le socket est coupé.
 
-## 5. Temps réel et repli
+## 5. Navigation embarquée (§5)
+
+L'application ne fournit pas son propre guidage : elle passe la main à
+l'application de navigation déjà installée sur le téléphone (Waze, Google Maps,
+Plans), avec repli sur le schéma `geo:` d'Android, les Plans d'iOS, puis le
+navigateur web.
+
+C'est le choix raisonnable : un chauffeur connaît son outil, l'a réglé à son
+goût, ses cartes sont à jour. Refaire un guidage moins bon ne rendrait service à
+personne.
+
+La cible suit l'état de la course — le client tant qu'il n'est pas à bord, la
+destination ensuite. Le chauffeur n'a rien à choisir : à chaque instant, une
+seule destination a du sens.
+
+> Sur iOS, `LSApplicationQueriesSchemes` doit déclarer les schémas interrogés,
+> faute de quoi `canOpenURL` répond toujours non et le guidage retomberait
+> systématiquement sur le navigateur. C'est fait dans `app.json`.
+
+## 6. Position en arrière-plan pendant une course (§4)
+
+Un chauffeur range son téléphone, l'écran s'éteint. Sans remontée en
+arrière-plan, le client cesserait de le voir avancer au moment précis où il
+l'attend, et la trace GPS — pièce du dossier en cas de litige (§15) — serait
+trouée.
+
+`expo-task-manager` exécute une tâche hors du contexte React : elle lit le jeton
+directement dans le trousseau sécurisé et poste la position à l'API. Trois
+garde-fous :
+
+- elle ne tourne **que pendant une course**, jamais quand le chauffeur est
+  simplement en ligne — c'est de la batterie, des données, et une donnée
+  personnelle qu'on ne collecte pas sans raison ;
+- Android impose une notification permanente, qui rend le suivi visible du
+  chauffeur : il doit pouvoir constater à tout moment que sa position remonte,
+  et pourquoi ;
+- un refus d'autorisation n'est pas bloquant — la course se déroule
+  normalement, seul le suivi écran éteint est perdu.
+
+## 7. Temps réel et repli
 
 Les deux applications ouvrent un canal Socket.IO authentifié par le même jeton
 que l'API. Elles conservent **en plus** une interrogation périodique :
@@ -114,7 +153,7 @@ Cette redondance est délibérée. Sur un réseau mobile qui coupe, un client qu
 voit plus son chauffeur n'a que faire de la raison technique, et une offre
 manquée coûte une course au chauffeur comme une attente au client.
 
-## 6. Sécurité (§12)
+## 8. Sécurité (§12)
 
 - Les jetons sont conservés dans le trousseau sécurisé de l'appareil
   (`expo-secure-store` : Keychain sur iOS, Keystore sur Android), jamais dans le
@@ -127,19 +166,17 @@ manquée coûte une course au chauffeur comme une attente au client.
 - Les écrans indiquent explicitement quand la position est transmise et
   pourquoi.
 
-## 7. Ce qui reste à faire avant publication
+## 9. Ce qui reste à faire avant publication
 
 | Sujet | État |
 |---|---|
 | Téléversement des documents chauffeur | L'écran transmet une URL. Brancher le dépôt de fichier sur l'espace de stockage retenu (URL signée) — l'application ne doit pas stocker de pièces d'identité. |
 | Notifications push | Le serveur enregistre et journalise les notifications ; il reste à brancher FCM/APNs et à transmettre le jeton d'appareil via `PATCH /v1/{client,driver}/me`. |
-| Navigation embarquée | Le §5 prévoit la navigation jusqu'au client puis à la destination : ouvrir l'application de navigation du téléphone depuis l'écran de course. |
 | Recherche d'adresses | Champ d'autocomplétion au-dessus de la carte, une fois le fournisseur cartographique choisi. |
-| Position en arrière-plan | `expo-task-manager` est déjà déclaré côté chauffeur ; la remontée écran éteint reste à activer, avec le service de premier plan Android correspondant. |
 | Icônes et écrans de lancement | Les visuels sont ceux du gabarit Expo. |
 | Traductions | L'interface est en français uniquement. |
 
-## 8. Vérification
+## 10. Vérification
 
 Aucun appareil n'étant disponible en intégration continue, la garantie repose
 sur deux contrôles exécutés à chaque modification :

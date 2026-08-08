@@ -16,7 +16,8 @@ apps/admin           Interface d'administration (React + Vite)
 apps/mobile-client   Application client (Expo / React Native)
 apps/mobile-driver   Application chauffeur (Expo / React Native)
 packages/shared      Client d'API typé, formatage et canal temps réel partagés
-docs/                Cahier des charges, architecture, modèle de données, API, feuille de route
+docs/                Cahier des charges, architecture, modèle de données, API,
+                     guides utilisateur et administrateur, exploitation, feuille de route
 ```
 
 ## Démarrage
@@ -128,6 +129,20 @@ avec `NODE_ENV=production`.
 | Mobile money, carte | simulateur | prestataire agréé (§9) |
 | Itinéraires | haversine × facteur de sinuosité | fournisseur cartographique |
 | Téléversement des documents chauffeur | saisie d'une URL | espace de stockage à URL signée |
+
+## Documentation
+
+| Document | Pour qui |
+|---|---|
+| [`docs/guide-utilisateur.md`](docs/guide-utilisateur.md) | Clients et chauffeurs |
+| [`docs/guide-administrateur.md`](docs/guide-administrateur.md) | Exploitation, assistance, finances |
+| [`docs/exploitation.md`](docs/exploitation.md) | Équipe technique : sauvegarde, migrations, surveillance, incidents |
+| [`docs/architecture.md`](docs/architecture.md) | Développeurs |
+| [`docs/modele-de-donnees.md`](docs/modele-de-donnees.md) | Développeurs |
+| [`docs/api.md`](docs/api.md) | Développeurs |
+| [`docs/applications-mobiles.md`](docs/applications-mobiles.md) | Développeurs mobiles |
+| [`docs/cycle-de-vie-course.md`](docs/cycle-de-vie-course.md) | Tous |
+| [`docs/feuille-de-route.md`](docs/feuille-de-route.md) | Pilotage |
 
 Voir [`docs/feuille-de-route.md`](docs/feuille-de-route.md) pour l'état des
 phases du §26 et les points à trancher avant le lancement, notamment les
