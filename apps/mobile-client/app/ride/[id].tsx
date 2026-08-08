@@ -4,7 +4,6 @@ import {
   formatAmount,
   isActiveRide,
   palette,
-  radius,
   rideProgress,
   spacing,
   typography,

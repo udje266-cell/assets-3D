@@ -5,7 +5,6 @@ import {
   formatDuration,
   isActiveRide,
   palette,
-  radius,
   secondsUntil,
   spacing,
   typography,
@@ -14,7 +13,7 @@ import {
 import * as Location from 'expo-location';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Card, ErrorNotice, Pill, Row } from '../../src/components';
@@ -370,11 +369,6 @@ export default function ServiceScreen() {
       </ScrollView>
     </SafeAreaView>
   );
-}
-
-/** Alerte utilisée lorsqu'une action ne peut aboutir sans intervention. */
-export function notify(title: string, message: string): void {
-  Alert.alert(title, message);
 }
 
 const styles = StyleSheet.create({

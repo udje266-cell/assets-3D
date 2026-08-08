@@ -2,7 +2,6 @@ import {
   RIDE_STATUS_LABELS,
   formatAmount,
   palette,
-  radius,
   rideProgress,
   spacing,
   typography,
