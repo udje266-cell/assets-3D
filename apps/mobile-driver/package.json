@@ -23,6 +23,7 @@
     "expo-status-bar": "~57.0.1",
     "expo-task-manager": "~14.0.7",
     "react": "19.2.3",
+    "react-dom": "19.2.3",
     "react-native": "0.86.2",
     "react-native-gesture-handler": "~3.1.0",
     "react-native-maps": "1.27.2",
@@ -33,5 +34,8 @@
   "devDependencies": {
     "@types/react": "~19.2.2",
     "typescript": "~5.9.2"
+  },
+  "overrides": {
+    "react-native-worklets": "0.10.3"
   }
 }
