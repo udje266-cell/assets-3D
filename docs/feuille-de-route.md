@@ -5,16 +5,21 @@
 
 ## État actuel
 
-Ce dépôt contient le **socle serveur et l'administration** : la base de données,
-les règles métier, l'API et l'interface d'administration web. Les deux
-applications mobiles restent à réaliser ; elles consomment l'API décrite dans
-`docs/api.md` et ne portent aucune règle métier.
+Les quatre briques du §17 sont en place : base de données, règles métier, API,
+interface d'administration et les deux applications mobiles. Les applications
+mobiles ne portent aucune règle métier — elles consomment l'API décrite dans
+`docs/api.md`.
+
+Ce qui reste tient à des dépendances externes (prestataire de paiement,
+cartographie, passerelle SMS, stockage de documents) et à ce qui ne peut être
+validé qu'en conditions réelles : essais sur appareils, campagne de tests
+utilisateurs, publication sur les magasins d'applications.
 
 | Livrable attendu (§27) | État |
 |---|---|
-| Maquettes UX/UI | À faire |
-| Application client | À faire (API prête) |
-| Application chauffeur | À faire (API prête) |
+| Maquettes UX/UI | Non produites : les écrans ont été dessinés directement en code |
+| Application client | **Livrée** (`apps/mobile-client`) |
+| Application chauffeur | **Livrée** (`apps/mobile-driver`) |
 | Backend / API | **Livré** |
 | Base de données | **Livré** |
 | Interface d'administration | **Livré** |
@@ -31,15 +36,17 @@ applications mobiles restent à réaliser ; elles consomment l'API décrite dans
 |---|---|
 | Client : inscription par OTP | **Livré** |
 | Client : position, départ/destination, estimation | **Livré** |
-| Client : commande, suivi, historique | **Livré** (API) |
-| Client : paiement, notation | **Livré** (API) |
+| Client : commande, suivi temps réel, historique | **Livré** |
+| Client : paiement, notation | **Livré** |
 | Chauffeur : inscription, dépôt de documents | **Livré** |
 | Chauffeur : validation par l'administration | **Livré** |
 | Chauffeur : disponibilité, réception de courses | **Livré** |
 | Chauffeur : historique et revenus | **Livré** |
 | Administration : tableau de bord, chauffeurs, clients, courses, tarifs, paiements, statistiques | **Livré** |
-| Applications mobiles | À faire |
-| Navigation embarquée | À faire (application mobile + fournisseur cartographique) |
+| Applications mobiles | **Livrées** |
+| Navigation embarquée | À faire : ouvrir l'application de navigation du téléphone depuis l'écran de course |
+| Notifications push | Enregistrées côté serveur ; FCM/APNs à brancher |
+| Téléversement des documents chauffeur | L'écran transmet une URL ; dépôt de fichier à brancher |
 
 Le §21 demande de « privilégier la fiabilité des courses et des paiements avant
 l'ajout de fonctionnalités secondaires ». C'est la raison pour laquelle le
@@ -71,9 +78,9 @@ géographique. Rien n'est engagé ; le modèle de tarification par zone
 | Phase | Contenu | État |
 |---|---|---|
 | 1 | Étude réglementaire et commerciale | À conduire — voir §28 et ci-dessous |
-| 2 | Conception UX/UI | À faire |
+| 2 | Conception UX/UI | Écrans réalisés en code ; pas de maquettes formelles |
 | 3 | Architecture technique et base de données | **Fait** |
-| 4 | Développement du MVP | Socle serveur fait ; mobile à faire |
+| 4 | Développement du MVP | **Fait** — reste les essais sur appareils |
 | 5 | Intégration paiements et cartographie | Adaptateurs prêts, prestataires à choisir |
 | 6 | Tests techniques, sécurité, tests utilisateurs | Suite automatisée en place ; audit externe à prévoir |
 | 7 | Recrutement et vérification des chauffeurs | Outillage d'administration prêt |
@@ -99,6 +106,13 @@ géographique. Rien n'est engagé ; le modèle de tarification par zone
 5. **Politique de rétention des données de localisation.** La trace GPS de
    chaque course est une donnée personnelle sensible : sa durée de conservation
    doit être décidée et documentée.
+6. **Comptes de publication.** Apple Developer et Google Play, identifiants de
+   paquets (`ci.mobilite.client`, `ci.mobilite.driver`), visuels d'icône et
+   d'écran de lancement — ceux du gabarit Expo sont en place.
+7. **Essais sur appareils.** L'intégration continue vérifie le typage et
+   construit le paquet JavaScript des deux applications, ce qui ne remplace pas
+   un essai réel : GPS en conditions urbaines, coupures réseau, autonomie sur
+   une journée de service.
 
 ## Sur les chiffres du §25
 

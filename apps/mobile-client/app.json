@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Mobilité",
+    "slug": "mobilite-client",
+    "scheme": "mobilite",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#2a78d6",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "ci.mobilite.client",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Votre position sert à vous localiser au départ de la course et à suivre l’arrivée de votre chauffeur."
+      }
+    },
+    "android": {
+      "package": "ci.mobilite.client",
+      "adaptiveIcon": {
+        "backgroundColor": "#2a78d6",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Votre position sert à vous localiser au départ de la course."
+        }
+      ]
+    ],
+    "extra": {
+      "apiUrl": "http://localhost:3000"
+    }
+  }
+}

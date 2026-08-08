@@ -507,7 +507,15 @@ export async function registerDriverRoutes(app: FastifyInstance, ctx: AppContext
       .offset(query.offset)
       .execute();
 
-    return { items: rides.map(serializeRide) };
+    // La part chauffeur est ajoutée à la liste : c'est le chiffre qui intéresse
+    // le chauffeur dans son historique, davantage que le prix payé par le client.
+    return {
+      items: rides.map((ride) => ({
+        ...serializeRide(ride),
+        driverAmount: ride.driver_amount,
+        platformAmount: ride.platform_amount,
+      })),
+    };
   });
 
   app.get('/v1/driver/rides/:id', auth, async (request) => {
