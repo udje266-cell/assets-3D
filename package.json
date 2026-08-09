@@ -1,0 +1,25 @@
+{
+  "name": "plateforme-mobilite",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plateforme de mobilité et de réservation de transport — backend/API et interface d'administration",
+  "workspaces": [
+    "packages/*",
+    "apps/api",
+    "apps/admin"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace apps/api",
+    "dev:admin": "npm run dev --workspace apps/admin",
+    "build": "npm run build --workspace apps/api && npm run build --workspace apps/admin",
+    "migrate": "npm run migrate --workspace apps/api",
+    "seed": "npm run seed --workspace apps/api",
+    "test": "npm run test --workspace apps/api",
+    "typecheck": "npm run typecheck --workspace apps/api && npm run typecheck --workspace apps/admin",
+    "install:mobile": "npm --prefix apps/mobile-client install && npm --prefix apps/mobile-driver install",
+    "typecheck:mobile": "npm --prefix apps/mobile-client run typecheck && npm --prefix apps/mobile-driver run typecheck"
+  }
+}

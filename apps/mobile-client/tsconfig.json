@@ -1,0 +1,21 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true,
+    // `@mobilite/shared` est consommé en source TypeScript, compilé dans le
+    // programme de cette application. TypeScript résout les imports depuis le
+    // fichier qui les contient : sans la redirection ci-dessous, les
+    // dépendances de `packages/shared` seraient cherchées dans son propre
+    // `node_modules`, qui n'existe pas — l'application est autonome et porte
+    // elle-même ces paquets.
+    "paths": {
+      "@/*": ["./src/*"],
+      "@mobilite/shared": ["../../packages/shared/src/index.ts"],
+      "socket.io-client": ["./node_modules/socket.io-client"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],
+  "exclude": ["node_modules", ".expo-export"]
+}

@@ -1,0 +1,80 @@
+name: Intégration continue
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  serveur:
+    name: API et administration
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: mobilite
+          POSTGRES_PASSWORD: mobilite
+          POSTGRES_DB: mobilite_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U mobilite"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      TEST_DATABASE_URL: postgres://mobilite:mobilite@localhost:5432/mobilite_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Contrôle de typage
+        run: npm run typecheck
+
+      - name: Tests (unitaires et intégration)
+        run: npm test
+
+      - name: Construction
+        run: npm run build
+
+  mobile:
+    name: Applications mobiles
+    runs-on: ubuntu-latest
+    # Les deux applications Expo ont leur propre arbre de dépendances : elles
+    # ne font pas partie des espaces de travail npm, pour qu'aucune résolution
+    # partagée ne vienne écraser une dépendance native.
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [mobile-client, mobile-driver]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/${{ matrix.app }}/package-lock.json
+
+      - name: Installation
+        working-directory: apps/${{ matrix.app }}
+        run: npm ci
+
+      - name: Contrôle de typage
+        working-directory: apps/${{ matrix.app }}
+        run: npm run typecheck
+
+      - name: Construction du paquet JavaScript
+        working-directory: apps/${{ matrix.app }}
+        run: npm run bundle

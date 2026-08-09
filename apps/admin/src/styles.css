@@ -1,0 +1,647 @@
+/*
+ * Feuille de style de l'administration.
+ *
+ * Les couleurs sont déclarées en jetons sur :root pour le mode clair, puis
+ * redéfinies pour le mode sombre — d'abord sous la préférence système, ensuite
+ * sous un choix explicite, afin que le réglage de l'utilisateur l'emporte dans
+ * les deux sens. Les couleurs de graphique proviennent de la palette
+ * catégorielle validée (bleu et vert d'eau, emplacements 1 et 3).
+ */
+
+:root {
+  color-scheme: light;
+
+  --surface-0: #f5f5f3;
+  --surface-1: #fcfcfb;
+  --surface-2: #eeeeeb;
+  --border: #dcdcd6;
+  --border-strong: #c2c2ba;
+
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #7a7975;
+
+  --accent: #b64d00;
+  --accent-ink: #ffffff;
+
+  --series-1: #fd7e02;
+  --series-3: #1baf7a;
+
+  --good: #1a7f4b;
+  --warning: #a86400;
+  --critical: #c02b2b;
+  --good-bg: #e3f3ea;
+  --warning-bg: #fbf0dc;
+  --critical-bg: #fbe6e6;
+  --neutral-bg: #e9e9e5;
+
+  --radius: 8px;
+  --radius-sm: 4px;
+  --shadow: 0 1px 2px rgb(0 0 0 / 6%), 0 4px 12px rgb(0 0 0 / 4%);
+
+  --font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --surface-0: #121211;
+    --surface-1: #1a1a19;
+    --surface-2: #242422;
+    --border: #35352f;
+    --border-strong: #4a4a43;
+
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #8d8c83;
+
+    --accent: #fd7e02;
+    --accent-ink: #0b0b0b;
+
+    --series-1: #fd7e02;
+    --series-3: #199e70;
+
+    --good: #4cc38a;
+    --warning: #d9a441;
+    --critical: #e66767;
+    --good-bg: #14342a;
+    --warning-bg: #35291a;
+    --critical-bg: #3a1f1f;
+    --neutral-bg: #2c2c29;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --surface-0: #121211;
+  --surface-1: #1a1a19;
+  --surface-2: #242422;
+  --border: #35352f;
+  --border-strong: #4a4a43;
+
+  --text-primary: #ffffff;
+  --text-secondary: #c3c2b7;
+  --text-muted: #8d8c83;
+
+  --accent: #fd7e02;
+  --accent-ink: #0b0b0b;
+
+  --series-1: #fd7e02;
+  --series-3: #199e70;
+
+  --good: #4cc38a;
+  --warning: #d9a441;
+  --critical: #e66767;
+  --good-bg: #14342a;
+  --warning-bg: #35291a;
+  --critical-bg: #3a1f1f;
+  --neutral-bg: #2c2c29;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--surface-0);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: 22px;
+}
+h2 {
+  font-size: 16px;
+}
+h3 {
+  font-size: 14px;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* ------------------------------------------------------------------ mise en page */
+
+.app {
+  display: grid;
+  grid-template-columns: 232px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  background: var(--surface-1);
+  border-right: 1px solid var(--border);
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.brand {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  padding: 0 10px 18px;
+}
+
+/* Le logotype est détouré : il se pose sur le fond de la page. Comme il est
+   blanc et orange, ce fond doit être le noir de la marque — d'où un bandeau
+   qui court d'un bord à l'autre plutôt qu'une plaque, dont on verrait la
+   découpe. */
+.brand-band {
+  /* Compense le rembourrage de la barre latérale (20px 12px) et celui de
+     .brand (0 10px) pour toucher les bords. */
+  margin: -20px -22px 18px;
+  padding: 18px 22px;
+  background: #000000;
+}
+
+.brand span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.nav-link {
+  display: block;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  background: var(--surface-2);
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.nav-link.active {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.nav-section {
+  margin-top: 14px;
+  padding: 0 10px 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 12px 10px 0;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.content {
+  padding: 24px 28px 56px;
+  max-width: 1400px;
+  width: 100%;
+}
+
+.page-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.page-header p {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+}
+
+/* ------------------------------------------------------------------ cartes */
+
+.card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.card + .card {
+  margin-top: 16px;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+}
+
+.grid-2 {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.tile {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+
+.tile-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.tile-value {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.tile-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ------------------------------------------------------------------ tableaux */
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-1);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  white-space: nowrap;
+}
+
+td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+tbody tr:hover td {
+  background: var(--surface-2);
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.empty {
+  padding: 32px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* ------------------------------------------------------------------ éléments */
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--neutral-bg);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.badge-good {
+  background: var(--good-bg);
+  color: var(--good);
+}
+.badge-warning {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+.badge-critical {
+  background: var(--critical-bg);
+  color: var(--critical);
+}
+
+button,
+.button {
+  font: inherit;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+button.primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+button.danger {
+  color: var(--critical);
+  border-color: var(--critical);
+  background: transparent;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  width: 100%;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.field + .field {
+  margin-top: 12px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.toolbar .field {
+  margin-top: 0;
+  min-width: 180px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.alert {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.alert-error {
+  background: var(--critical-bg);
+  color: var(--critical);
+}
+
+.alert-success {
+  background: var(--good-bg);
+  color: var(--good);
+}
+
+.definition {
+  display: grid;
+  grid-template-columns: minmax(140px, max-content) 1fr;
+  gap: 6px 16px;
+  font-size: 13px;
+}
+
+.definition dt {
+  color: var(--text-secondary);
+}
+
+.definition dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-left: 2px solid var(--border);
+}
+
+.timeline li {
+  position: relative;
+  padding: 0 0 14px 18px;
+}
+
+.timeline li::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--surface-1);
+}
+
+.timeline time {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ------------------------------------------------------------------ connexion */
+
+.login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--shadow);
+}
+
+.login-card h1 {
+  margin-bottom: 4px;
+}
+
+.login-card p {
+  margin: 0 0 20px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.login-card button {
+  width: 100%;
+  margin-top: 18px;
+}
+
+/* ------------------------------------------------------------------ graphique */
+
+.chart {
+  width: 100%;
+}
+
+.chart-empty {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.chart-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--surface-1);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 12px;
+  box-shadow: var(--shadow);
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.chart-tooltip strong {
+  display: block;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 860px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-footer,
+  .nav-section {
+    width: 100%;
+  }
+
+  .content {
+    padding: 16px;
+  }
+}
+
+/* Logotype URIGO : blanc et orange sur noir, d'où la plaque noire — c'est ce
+   qui préserve ses couleurs en thème clair comme en thème sombre. */
+.brand-logo {
+  display: block;
+  height: 22px;
+  width: auto;
+}
+
+.login-card .brand-band {
+  margin: -28px -28px 24px;
+  padding: 22px 28px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  text-align: center;
+}
+
+.login-card .brand-logo {
+  height: 26px;
+  margin: 0 auto;
+}
