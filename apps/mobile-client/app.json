@@ -44,6 +44,16 @@
         {
           "locationWhenInUsePermission": "Votre position sert à vous localiser au départ de la course."
         }
+      ],
+      "expo-build-properties",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
+        }
       ]
     ],
     "extra": {
