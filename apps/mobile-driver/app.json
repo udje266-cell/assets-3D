@@ -57,6 +57,16 @@
           "locationAlwaysAndWhenInUsePermission": "Votre position remonte pendant une course pour que le client suive votre trajet.",
           "isAndroidForegroundServiceEnabled": true
         }
+      ],
+      "expo-build-properties",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
+        }
       ]
     ],
     "extra": {
