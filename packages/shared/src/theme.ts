@@ -1,13 +1,23 @@
 /**
  * Jetons visuels partagés par les deux applications.
  *
- * Un seul jeu de couleurs, deux accents : bleu pour le client, vert pour le
- * chauffeur — de sorte qu'un chauffeur ouvrant les deux applications sache
- * immédiatement laquelle il regarde. Les valeurs proviennent de la même
- * palette que l'administration.
+ * Les trois couleurs de la marque URIGO — noir, blanc, orange — sont relevées
+ * sur le logotype fourni (`tools/brand/source/`) et ne doivent pas être
+ * réinterprétées.
+ *
+ * L'orange de la marque ne porte pas de texte blanc lisiblement (moins de 3:1) :
+ * il sert d'accent et de repère, jamais de fond à du texte clair. Les actions
+ * principales s'appuient donc sur le noir de la marque côté client et sur un
+ * orange assombri côté chauffeur — deux accents distincts, pour qu'un chauffeur
+ * qui ouvre les deux applications sache immédiatement laquelle il regarde.
  */
 
 export const palette = {
+  /** Couleurs de marque, telles qu'elles figurent sur le logotype. */
+  brandOrange: '#fd7e02',
+  brandBlack: '#000000',
+  brandWhite: '#ffffff',
+
   surface0: '#f5f5f3',
   surface1: '#ffffff',
   surface2: '#eeeeeb',
@@ -19,8 +29,8 @@ export const palette = {
   textMuted: '#7a7975',
   textInverse: '#ffffff',
 
-  clientAccent: '#2a78d6',
-  driverAccent: '#1a7f4b',
+  clientAccent: '#0b0b0b',
+  driverAccent: '#b64d00',
 
   good: '#1a7f4b',
   goodBg: '#e3f3ea',

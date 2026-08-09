@@ -2,7 +2,7 @@ import { cleanPhone, palette, spacing, typography } from '@mobilite/shared';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Button, ErrorNotice, Field, Screen, Title } from '../../src/components';
+import { Button, ErrorNotice, Field, Screen, Title, Wordmark } from '../../src/components';
 import { useSession } from '../../src/session';
 
 /**
@@ -42,9 +42,7 @@ export default function PhoneScreen() {
   return (
     <Screen>
       <View style={styles.header}>
-        <View style={styles.mark}>
-          <Text style={styles.markText}>M</Text>
-        </View>
+        <Wordmark />
         <Title subtitle="Commandez une course en quelques secondes.">Bienvenue</Title>
       </View>
 
@@ -79,17 +77,7 @@ export default function PhoneScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: { marginTop: spacing.xxl },
-  mark: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: palette.clientAccent,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.lg,
-  },
-  markText: { color: palette.textInverse, fontSize: 28, fontWeight: '700' },
+  header: { marginTop: spacing.xxl, gap: spacing.lg },
   legal: {
     ...typography.caption,
     color: palette.textMuted,

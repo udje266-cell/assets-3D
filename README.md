@@ -1,4 +1,4 @@
-# Plateforme de mobilité et de réservation de transport
+# URIGO — plateforme de mobilité et de réservation de transport
 
 Mise en œuvre du cahier des charges fourni
 (`docs/cahier-des-charges.md`) : mettre en relation des clients avec des
@@ -13,9 +13,10 @@ calculés par le serveur.
 ```
 apps/api             API REST + WebSocket, base de données, règles métier
 apps/admin           Interface d'administration (React + Vite)
-apps/mobile-client   Application client (Expo / React Native)
-apps/mobile-driver   Application chauffeur (Expo / React Native)
+apps/mobile-client   Application client URIGO (Expo / React Native)
+apps/mobile-driver   Application chauffeur URIGO PRO (Expo / React Native)
 packages/shared      Client d'API typé, formatage et canal temps réel partagés
+tools/brand          Originaux du logotype et script de déclinaison des icônes
 docs/                Cahier des charges, architecture, modèle de données, API,
                      guides utilisateur et administrateur, exploitation, feuille de route
 ```

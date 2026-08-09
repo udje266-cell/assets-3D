@@ -1,33 +1,37 @@
 {
   "expo": {
-    "name": "Mobilité",
-    "slug": "mobilite-client",
-    "scheme": "mobilite",
+    "name": "URIGO",
+    "slug": "urigo-client",
+    "scheme": "urigo",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "backgroundColor": "#2a78d6",
-      "resizeMode": "contain"
+      "backgroundColor": "#000000",
+      "resizeMode": "contain",
+      "image": "./assets/splash-icon.png"
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "ci.mobilite.client",
+      "bundleIdentifier": "ci.urigo.client",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Votre position sert à vous localiser au départ de la course et à suivre l’arrivée de votre chauffeur."
       }
     },
     "android": {
-      "package": "ci.mobilite.client",
+      "package": "ci.urigo.client",
       "adaptiveIcon": {
-        "backgroundColor": "#2a78d6",
+        "backgroundColor": "#000000",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "plugins": [

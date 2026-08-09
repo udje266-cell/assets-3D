@@ -42,7 +42,7 @@ export function App() {
     <div className="app">
       <nav className="sidebar">
         <div className="brand">
-          <strong>Plateforme de mobilité</strong>
+          <img src="/urigo.png" alt="URIGO" className="brand-logo" />
           <span>Administration</span>
         </div>
 

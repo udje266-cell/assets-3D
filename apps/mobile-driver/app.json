@@ -1,20 +1,21 @@
 {
   "expo": {
-    "name": "Mobilité Chauffeur",
-    "slug": "mobilite-chauffeur",
-    "scheme": "mobilitechauffeur",
+    "name": "URIGO PRO",
+    "slug": "urigo-pro-chauffeur",
+    "scheme": "urigopro",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "backgroundColor": "#1a7f4b",
-      "resizeMode": "contain"
+      "backgroundColor": "#000000",
+      "resizeMode": "contain",
+      "image": "./assets/splash-icon.png"
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "ci.mobilite.driver",
+      "bundleIdentifier": "ci.urigo.driver",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Votre position permet de vous proposer les courses proches et de guider le client jusqu’à vous.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Votre position continue de remonter pendant une course afin que le client suive votre trajet, même écran éteint.",
@@ -29,9 +30,9 @@
       }
     },
     "android": {
-      "package": "ci.mobilite.driver",
+      "package": "ci.urigo.driver",
       "adaptiveIcon": {
-        "backgroundColor": "#1a7f4b",
+        "backgroundColor": "#000000",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"

@@ -53,7 +53,7 @@ async function main(): Promise<void> {
 
   app.log.info(
     { port: env.PORT, env: env.NODE_ENV },
-    'Plateforme de mobilité — API démarrée',
+    'URIGO — API démarrée',
   );
 }
 

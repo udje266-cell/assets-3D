@@ -22,8 +22,8 @@ se comptent en semaines, qui conditionnent la suite.
 | Livrable attendu (§27) | État |
 |---|---|
 | Maquettes UX/UI | Non produites : les écrans ont été dessinés directement en code |
-| Application client | **Livrée** (`apps/mobile-client`) |
-| Application chauffeur | **Livrée** (`apps/mobile-driver`) |
+| Application client | **Livrée** — URIGO (`apps/mobile-client`) |
+| Application chauffeur | **Livrée** — URIGO PRO (`apps/mobile-driver`) |
 | Backend / API | **Livré** |
 | Base de données | **Livré** |
 | Interface d'administration | **Livré** |
@@ -120,8 +120,8 @@ géographique. Rien n'est engagé ; le modèle de tarification par zone
    chaque course est une donnée personnelle sensible : sa durée de conservation
    doit être décidée et documentée.
 6. **Comptes de publication.** Apple Developer et Google Play, identifiants de
-   paquets (`ci.mobilite.client`, `ci.mobilite.driver`), visuels d'icône et
-   d'écran de lancement — ceux du gabarit Expo sont en place.
+   paquets (`ci.urigo.client`, `ci.urigo.driver`). Les visuels d'icône et
+   d'écran de lancement sont ceux de la marque URIGO.
 7. **Essais sur appareils.** L'intégration continue vérifie le typage et
    construit le paquet JavaScript des deux applications, ce qui ne remplace pas
    un essai réel : GPS en conditions urbaines, coupures réseau, autonomie sur

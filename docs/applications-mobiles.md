@@ -173,10 +173,41 @@ manquée coûte une course au chauffeur comme une attente au client.
 | Téléversement des documents chauffeur | L'écran transmet une URL. Brancher le dépôt de fichier sur l'espace de stockage retenu (URL signée) — l'application ne doit pas stocker de pièces d'identité. |
 | Notifications push | Le serveur enregistre et journalise les notifications ; il reste à brancher FCM/APNs et à transmettre le jeton d'appareil via `PATCH /v1/{client,driver}/me`. |
 | Recherche d'adresses | Champ d'autocomplétion au-dessus de la carte, une fois le fournisseur cartographique choisi. |
-| Icônes et écrans de lancement | Les visuels sont ceux du gabarit Expo. |
+| Icônes et écrans de lancement | **Livrés** — déclinés des originaux URIGO par `tools/brand/generate.py` (§ ci-dessous). |
 | Traductions | L'interface est en français uniquement. |
 
-## 10. Vérification
+## 10. Marque
+
+Les deux applications s'appellent **URIGO** (client) et **URIGO PRO**
+(chauffeur). Les originaux du logotype et du symbole sont versionnés dans
+`tools/brand/source/` ; ils ne sont jamais redessinés.
+
+`tools/brand/generate.py` les recadre et les décline en icônes iOS, icônes
+adaptatives Android (fond, premier plan, monochrome), favicons, écrans de
+lancement et logotype affiché à l'écran. Une icône d'application existe en une
+dizaine de variantes : les tenir à jour à la main est une source d'écarts
+silencieux, d'où un script plutôt qu'un dossier d'exports.
+
+```bash
+python3 tools/brand/generate.py     # réécrit apps/*/assets/ et apps/admin/public/
+```
+
+Deux points méritent d'être connus :
+
+- **Le logotype reste sur son fond noir.** Il est blanc et orange ; le détourer
+  imposerait de le recolorer selon le fond, donc de trahir ses couleurs. Il est
+  posé sur une plaque noire, dans l'application comme dans l'administration.
+- **L'orange de la marque (`#fd7e02`) ne porte pas de texte blanc** — moins de
+  3:1 de contraste. Il sert d'accent et de repère, jamais de fond à du texte
+  clair : les actions principales s'appuient sur le noir de la marque côté
+  client et sur un orange assombri côté chauffeur.
+
+L'icône chauffeur est celle du client augmentée d'une pastille « PRO » posée
+au-dessous du symbole, jamais dessus : les deux applications doivent se lire
+comme une même famille tout en se distinguant sur l'écran d'accueil du
+téléphone — un chauffeur a les deux installées.
+
+## 11. Vérification
 
 Aucun appareil n'étant disponible en intégration continue, la garantie repose
 sur deux contrôles exécutés à chaque modification :

@@ -2,6 +2,7 @@ import { palette, radius, spacing, typography } from '@mobilite/shared';
 import type { ReactNode } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,6 +17,30 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 /** Éléments d'interface communs à l'application chauffeur. */
 
 const ACCENT = palette.driverAccent;
+
+/** Rapport largeur/hauteur de assets/wordmark.png, engendré par tools/brand. */
+const WORDMARK_RATIO = 7.47;
+
+/**
+ * Logotype URIGO.
+ *
+ * Le logotype est blanc et orange sur fond noir. Il est posé sur une plaque
+ * noire plutôt que détouré : c'est ce qui garantit que ses couleurs restent
+ * exactement celles de la marque, quel que soit le fond de l'écran.
+ */
+export function Wordmark({ height = 30 }: { height?: number }) {
+  return (
+    <View style={[styles.wordmark, { padding: height * 0.5, borderRadius: height * 0.55 }]}>
+      <Image
+        source={require('../assets/wordmark.png')}
+        style={{ height, width: height * WORDMARK_RATIO }}
+        resizeMode="contain"
+        accessibilityRole="image"
+        accessibilityLabel="URIGO"
+      />
+    </View>
+  );
+}
 
 export function Screen({
   children,
@@ -203,6 +228,7 @@ export function Empty({ children }: { children: ReactNode }) {
 }
 
 const styles = StyleSheet.create({
+  wordmark: { backgroundColor: palette.brandBlack, alignSelf: 'flex-start' },
   screen: { flex: 1, backgroundColor: palette.surface0 },
   screenInner: { flex: 1 },
   scrollContent: { padding: spacing.lg, paddingBottom: spacing.xxl },

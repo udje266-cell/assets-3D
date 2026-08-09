@@ -21,10 +21,10 @@
   --text-secondary: #52514e;
   --text-muted: #7a7975;
 
-  --accent: #2a78d6;
+  --accent: #b64d00;
   --accent-ink: #ffffff;
 
-  --series-1: #2a78d6;
+  --series-1: #fd7e02;
   --series-3: #1baf7a;
 
   --good: #1a7f4b;
@@ -57,9 +57,10 @@
     --text-secondary: #c3c2b7;
     --text-muted: #8d8c83;
 
-    --accent: #3987e5;
+    --accent: #fd7e02;
+    --accent-ink: #0b0b0b;
 
-    --series-1: #3987e5;
+    --series-1: #fd7e02;
     --series-3: #199e70;
 
     --good: #4cc38a;
@@ -85,9 +86,10 @@
   --text-secondary: #c3c2b7;
   --text-muted: #8d8c83;
 
-  --accent: #3987e5;
+  --accent: #fd7e02;
+  --accent-ink: #0b0b0b;
 
-  --series-1: #3987e5;
+  --series-1: #fd7e02;
   --series-3: #199e70;
 
   --good: #4cc38a;
@@ -161,12 +163,10 @@ a:hover {
 }
 
 .brand {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
   padding: 0 10px 18px;
-}
-
-.brand strong {
-  display: block;
-  font-size: 15px;
 }
 
 .brand span {
@@ -612,4 +612,21 @@ label {
   .content {
     padding: 16px;
   }
+}
+
+/* Logotype URIGO : blanc et orange sur noir, d'où la plaque noire — c'est ce
+   qui préserve ses couleurs en thème clair comme en thème sombre. */
+.brand-logo {
+  display: block;
+  box-sizing: content-box;
+  height: 22px;
+  width: auto;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #000000;
+}
+
+.login-card .brand-logo {
+  height: 30px;
+  margin: 0 auto 22px;
 }

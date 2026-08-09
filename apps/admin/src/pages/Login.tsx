@@ -24,8 +24,9 @@ export function Login({ onSuccess }: { onSuccess: (profile: AdminProfile) => voi
   return (
     <div className="login">
       <form className="login-card" onSubmit={submit}>
+        <img src="/urigo.png" alt="URIGO" className="brand-logo" />
         <h1>Administration</h1>
-        <p>Plateforme de mobilité et de réservation de transport</p>
+        <p>URIGO — plateforme de mobilité et de réservation de transport</p>
 
         <ErrorMessage error={error} />
 
