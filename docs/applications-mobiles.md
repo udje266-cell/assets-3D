@@ -209,7 +209,49 @@ au-dessous du symbole, jamais dessus : les deux applications doivent se lire
 comme une même famille tout en se distinguant sur l'écran d'accueil du
 téléphone — un chauffeur a les deux installées.
 
-## 11. Vérification
+## 11. Produire un paquet Android
+
+Les applications sont en flux Expo « géré » : les dossiers `android/` et `ios/`
+ne sont pas versionnés, ils sont engendrés à la demande depuis `app.json`. C'est
+ce qui garantit qu'icônes, permissions et identifiants de paquet décrits dans
+`app.json` sont bien ceux du paquet — un dossier natif versionné diverge en
+silence.
+
+```bash
+cd apps/mobile-client            # ou apps/mobile-driver
+npx expo prebuild --platform android --clean
+cd android
+./gradlew assembleRelease        # app/build/outputs/apk/release/app-release.apk
+```
+
+Prérequis : JDK 21 et le SDK Android (plateforme 36, outils de compilation
+36.0.0), `sdk.dir` renseigné dans `android/local.properties`. Compter une
+trentaine de minutes pour la première compilation.
+
+### Deux points à trancher avant de distribuer
+
+**La signature.** Sans magasin de clés de production, Gradle signe avec la clé
+de débogage : le paquet s'installe et s'essaie, mais il n'est pas publiable. La
+clé de publication doit être créée une fois, conservée hors du dépôt et
+sauvegardée — la perdre interdit définitivement de mettre à jour l'application
+publiée.
+
+**L'adresse de l'API.** `extra.apiUrl` doit porter l'URL publique du serveur
+avant la compilation. Dans un paquet installé, `localhost` désigne le téléphone
+lui-même ; la déduction automatique décrite au §2 ne vaut que pour le serveur de
+développement. Cette URL doit être en HTTPS : Android bloque le trafic en clair
+depuis la version 9.
+
+### Taille du paquet
+
+Le paquet obtenu pèse une centaine de mégaoctets : il embarque les
+bibliothèques natives des quatre architectures. Deux réglages le ramènent à un
+quart de cette taille au moment de la publication — la découpe par architecture
+(`android.bundle.enableSplit`) ou, plus simplement, la production d'un *Android
+App Bundle* (`./gradlew bundleRelease`), le Play Store se chargeant alors de
+livrer à chaque appareil la seule architecture qui le concerne.
+
+## 12. Vérification
 
 Aucun appareil n'étant disponible en intégration continue, la garantie repose
 sur deux contrôles exécutés à chaque modification :

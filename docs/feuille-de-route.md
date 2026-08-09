@@ -122,7 +122,11 @@ géographique. Rien n'est engagé ; le modèle de tarification par zone
 6. **Comptes de publication.** Apple Developer et Google Play, identifiants de
    paquets (`ci.urigo.client`, `ci.urigo.driver`). Les visuels d'icône et
    d'écran de lancement sont ceux de la marque URIGO.
-7. **Essais sur appareils.** L'intégration continue vérifie le typage et
+7. **Clé de signature Android et iOS.** Les paquets sont aujourd'hui signés
+   avec la clé de débogage : installables et essayables, non publiables. La clé
+   de publication doit être créée, conservée hors du dépôt et sauvegardée — la
+   perdre interdit définitivement de mettre à jour l'application publiée.
+8. **Essais sur appareils.** L'intégration continue vérifie le typage et
    construit le paquet JavaScript des deux applications, ce qui ne remplace pas
    un essai réel : GPS en conditions urbaines, coupures réseau, autonomie sur
    une journée de service.

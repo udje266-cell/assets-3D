@@ -45,7 +45,8 @@ cd apps/mobile-driver && npm install && npm start
 ```
 
 Elles trouvent l'API automatiquement depuis l'hôte du serveur de développement.
-Voir [`docs/applications-mobiles.md`](docs/applications-mobiles.md).
+Pour produire un paquet Android (`expo prebuild` puis Gradle), voir
+[`docs/applications-mobiles.md`](docs/applications-mobiles.md).
 
 Avec Docker : `docker compose up` démarre PostgreSQL et l'API.
 
