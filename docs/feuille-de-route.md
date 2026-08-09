@@ -95,12 +95,20 @@ géographique. Rien n'est engagé ; le modèle de tarification par zone
 
 ## Ce qu'il faut trancher avant le lancement
 
-1. **Conformité (§28).** Les obligations applicables en Côte d'Ivoire —
-   transport, chauffeurs, véhicules, assurances, fiscalité, paiements
-   électroniques, protection des données — doivent être confirmées auprès des
-   autorités compétentes et d'un conseil juridique local. Le code n'en préjuge
-   pas : la liste des documents exigés est une donnée (`driver_documents.doc_type`),
-   pas une contrainte figée.
+1. **Conformité (§28).** Un dossier préparatoire a été constitué à partir de
+   sources publiques : [`docs/conformite-cote-divoire.md`](conformite-cote-divoire.md).
+   Il identifie les textes, les autorités et les démarches, mais **ne remplace
+   pas un avis juridique**.
+
+   Point décisif qui en ressort : l'exercice de l'activité VTC est soumis à un
+   **agrément du ministère chargé des transports** (décret n° 2021-860 du
+   15 décembre 2021), et le nombre de plateformes autorisées est restreint.
+   *Savoir si un nouvel entrant peut être agréé conditionne l'existence même du
+   projet* — c'est la première question à poser, avant toute autre dépense.
+
+   Deux exigences non couvertes par le code en découlent : la **facture
+   normalisée électronique** (FNE, obligatoire depuis fin 2025) et le **bouton
+   d'alerte d'urgence** passager.
 2. **Prestataire de paiement.** Le §9 impose de passer par un prestataire agréé.
    Le choix conditionne les délais de règlement et donc les règles de retrait.
 3. **Fournisseur cartographique.** Le calcul d'itinéraire actuel est une

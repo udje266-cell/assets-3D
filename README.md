@@ -142,6 +142,7 @@ avec `NODE_ENV=production`.
 | [`docs/api.md`](docs/api.md) | Développeurs |
 | [`docs/applications-mobiles.md`](docs/applications-mobiles.md) | Développeurs mobiles |
 | [`docs/cycle-de-vie-course.md`](docs/cycle-de-vie-course.md) | Tous |
+| [`docs/conformite-cote-divoire.md`](docs/conformite-cote-divoire.md) | Direction, juristes — dossier préparatoire §28 |
 | [`docs/feuille-de-route.md`](docs/feuille-de-route.md) | Pilotage |
 
 Voir [`docs/feuille-de-route.md`](docs/feuille-de-route.md) pour l'état des
