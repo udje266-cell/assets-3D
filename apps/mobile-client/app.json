@@ -3,7 +3,7 @@
     "name": "URIGO",
     "slug": "urigo-client",
     "scheme": "urigo",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -18,7 +18,8 @@
       "bundleIdentifier": "ci.urigo.client",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Votre position sert à vous localiser au départ de la course et à suivre l’arrivée de votre chauffeur."
-      }
+      },
+      "buildNumber": "1"
     },
     "android": {
       "package": "ci.urigo.client",
@@ -32,7 +33,8 @@
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"
       ],
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 1
     },
     "plugins": [
       "expo-router",

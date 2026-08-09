@@ -194,9 +194,11 @@ python3 tools/brand/generate.py     # réécrit apps/*/assets/ et apps/admin/pub
 
 Deux points méritent d'être connus :
 
-- **Le logotype reste sur son fond noir.** Il est blanc et orange ; le détourer
-  imposerait de le recolorer selon le fond, donc de trahir ses couleurs. Il est
-  posé sur une plaque noire, dans l'application comme dans l'administration.
+- **Le logotype est détouré** : il n'apporte pas son propre fond, il se pose
+  sur celui de l'écran. Comme il est blanc et orange, ce fond doit être le noir
+  de la marque — d'où un bandeau qui court d'un bord à l'autre plutôt qu'une
+  plaque posée au milieu de la page : une plaque laisse voir sa découpe, un
+  bandeau non. Même principe dans l'administration.
 - **L'orange de la marque (`#fd7e02`) ne porte pas de texte blanc** — moins de
   3:1 de contraste. Il sert d'accent et de repère, jamais de fond à du texte
   clair : les actions principales s'appuient sur le noir de la marque côté

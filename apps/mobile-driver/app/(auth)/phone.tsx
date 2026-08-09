@@ -34,8 +34,9 @@ export default function PhoneScreen() {
 
   return (
     <Screen>
+      <Wordmark />
+
       <View style={styles.header}>
-        <Wordmark />
         <Title subtitle="Recevez des courses et suivez vos revenus.">Espace chauffeur</Title>
       </View>
 
@@ -65,7 +66,7 @@ export default function PhoneScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: { marginTop: spacing.xxl, gap: spacing.lg },
+  header: { marginTop: spacing.xl },
   legal: {
     ...typography.caption,
     color: palette.textMuted,

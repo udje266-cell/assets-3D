@@ -102,7 +102,7 @@ def _pro_badge(height: int) -> Image.Image:
 
 
 def _with_badge(content: Image.Image, *, gap_ratio: float = 0.10) -> Image.Image:
-    """Logotype suivi de la pastille « PRO », sur le noir de la marque."""
+    """Logotype suivi de la pastille « PRO ». Fond noir, retiré au détourage."""
     badge = _pro_badge(int(content.height * 0.46))
     gap = int(content.height * gap_ratio)
     out = Image.new("RGB", (content.width + gap + badge.width, content.height), BLACK[:3])
@@ -155,16 +155,18 @@ def build_app(app: str, *, driver: bool) -> None:
     mono.paste(sil, (0, 0), sil)
     write(out / "android-icon-monochrome.png", mono)
 
-    # Écran de lancement : fond noir de la marque, symbole seul.
-    write(out / "splash-icon.png", _on_black(icon_source, 512, scale=0.70))
+    # Écran de lancement : symbole détouré, posé par le système sur le noir de
+    # la marque. Détouré et non sur fond noir : deux noirs encodés séparément
+    # ne se raccordent jamais tout à fait.
+    write(out / "splash-icon.png", _cut_out(_on_black(icon_source, 512, scale=0.70)))
 
-    # Logotype affiché dans l'application, sans la signature.
+    # Logotype affiché dans l'application, sans la signature, détouré.
     wordmark = _trimmed(WORDMARK_SRC, WORDMARK_BOX)
     if driver:
         wordmark = _with_badge(wordmark)
     ratio = 132 / wordmark.height
     write(out / "wordmark.png",
-          wordmark.resize((round(wordmark.width * ratio), 132), Image.LANCZOS))
+          _cut_out(wordmark.resize((round(wordmark.width * ratio), 132), Image.LANCZOS)))
 
 
 def main() -> None:
@@ -181,7 +183,7 @@ def main() -> None:
     wordmark = _trimmed(WORDMARK_SRC, WORDMARK_BOX)
     ratio = 96 / wordmark.height
     write(ROOT / "apps" / "admin" / "public" / "urigo.png",
-          wordmark.resize((round(wordmark.width * ratio), 96), Image.LANCZOS))
+          _cut_out(wordmark.resize((round(wordmark.width * ratio), 96), Image.LANCZOS)))
 
 
 if __name__ == "__main__":

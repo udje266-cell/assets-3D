@@ -169,6 +169,18 @@ a:hover {
   padding: 0 10px 18px;
 }
 
+/* Le logotype est détouré : il se pose sur le fond de la page. Comme il est
+   blanc et orange, ce fond doit être le noir de la marque — d'où un bandeau
+   qui court d'un bord à l'autre plutôt qu'une plaque, dont on verrait la
+   découpe. */
+.brand-band {
+  /* Compense le rembourrage de la barre latérale (20px 12px) et celui de
+     .brand (0 10px) pour toucher les bords. */
+  margin: -20px -22px 18px;
+  padding: 18px 22px;
+  background: #000000;
+}
+
 .brand span {
   font-size: 12px;
   color: var(--text-muted);
@@ -618,15 +630,18 @@ label {
    qui préserve ses couleurs en thème clair comme en thème sombre. */
 .brand-logo {
   display: block;
-  box-sizing: content-box;
   height: 22px;
   width: auto;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: #000000;
+}
+
+.login-card .brand-band {
+  margin: -28px -28px 24px;
+  padding: 22px 28px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  text-align: center;
 }
 
 .login-card .brand-logo {
-  height: 30px;
-  margin: 0 auto 22px;
+  height: 26px;
+  margin: 0 auto;
 }

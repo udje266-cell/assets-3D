@@ -23,8 +23,15 @@ modifier le script ou les originaux, puis régénérer.
 
 - **La signature « BOUGEZ. PARTAGEZ. ARRIVEZ. » est écartée** dans
   l'application (`WORDMARK_BOX` coupe sous le mot). Elle reste dans l'original.
-- **Le logotype garde son fond noir.** Il est blanc et orange ; le détourer
-  obligerait à le recolorer selon le fond, donc à trahir ses couleurs.
+- **Le logotype et l'écran de lancement sont détourés** (`_cut_out`) : ils
+  n'apportent pas leur propre fond, ils se posent sur celui de l'écran. Deux
+  noirs encodés séparément ne se raccordent jamais tout à fait ; un visuel sur
+  fond noir posé sur un fond noir laisse voir sa découpe.
+- **Le fond sur lequel ils se posent doit rester le noir de la marque.** Le
+  logotype est blanc et orange : il est présenté dans un bandeau noir courant
+  d'un bord à l'autre, jamais dans une plaque au milieu de la page. L'icône,
+  elle, garde son fond noir — c'est une image carrée que le système découpe
+  lui-même.
 - **L'icône chauffeur est l'icône client augmentée d'une pastille « PRO »**,
   posée sous le symbole et jamais dessus. Un chauffeur a les deux applications
   installées : elles doivent se lire comme une même famille et se distinguer

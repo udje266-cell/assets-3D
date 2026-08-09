@@ -22,15 +22,17 @@ const ACCENT = palette.driverAccent;
 const WORDMARK_RATIO = 7.47;
 
 /**
- * Logotype URIGO.
+ * Logotype URIGO, en bandeau d'en-tête.
  *
- * Le logotype est blanc et orange sur fond noir. Il est posé sur une plaque
- * noire plutôt que détouré : c'est ce qui garantit que ses couleurs restent
- * exactement celles de la marque, quel que soit le fond de l'écran.
+ * Le logotype est détouré : il n'apporte pas son propre fond, il se pose sur
+ * celui de l'écran. Comme il est blanc et orange, ce fond doit être le noir de
+ * la marque — d'où un bandeau qui court d'un bord à l'autre plutôt qu'une
+ * plaque posée au milieu de la page : une plaque laisse voir sa découpe, un
+ * bandeau non.
  */
 export function Wordmark({ height = 30 }: { height?: number }) {
   return (
-    <View style={[styles.wordmark, { padding: height * 0.5, borderRadius: height * 0.55 }]}>
+    <View style={styles.wordmark}>
       <Image
         source={require('../assets/wordmark.png')}
         style={{ height, width: height * WORDMARK_RATIO }}
@@ -228,7 +230,14 @@ export function Empty({ children }: { children: ReactNode }) {
 }
 
 const styles = StyleSheet.create({
-  wordmark: { backgroundColor: palette.brandBlack, alignSelf: 'flex-start' },
+  wordmark: {
+    backgroundColor: palette.brandBlack,
+    marginTop: -spacing.lg,
+    marginHorizontal: -spacing.lg,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    alignItems: 'flex-start',
+  },
   screen: { flex: 1, backgroundColor: palette.surface0 },
   screenInner: { flex: 1 },
   scrollContent: { padding: spacing.lg, paddingBottom: spacing.xxl },
